@@ -1,0 +1,1595 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#141a2e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>The Court</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Cairo:wght@600;800&family=Nunito:wght@500;700;800;900&display=swap">
+<style>
+/* Layout: one phone-width column, one screen per game phase; cards are paper objects on a night table */
+:root{
+  --bg:#141a2e; --table:#1c2440; --line:#2c3658; --raise:#232c4d; --paper:#f3efe6; --ink:#1b1f2e; --ink2:#5b6280;
+  --fg:#e9ecf6; --muted:#9aa3c2; --accent:#f2b33d;
+  --civ:#3cc4a8; --uc:#e2558f; --mw:#cfd6ea; --sp:#8fa8ff; --night:#0d1224;
+  --display:"Bowlby One","Cairo","Arial Black",Impact,sans-serif;
+  --body:"Nunito","Cairo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0;
+  -webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+body.night{background:var(--night)}
+.app{max-width:520px;margin:0 auto;padding-block:16px 48px;display:flex;flex-direction:column;gap:16px}
+.app>*{animation:rise .28s ease-out both}
+@keyframes rise{from{opacity:.35;transform:translateY(8px)}to{opacity:1;transform:none}}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:40px}
+.hl{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{font-family:var(--display);font-size:26px;letter-spacing:.5px;line-height:1}
+.logo.sm{font-size:20px}
+.logo span{color:var(--accent)}
+.back{width:40px;height:40px;border-radius:50%;background:var(--line);color:var(--fg);font-size:26px;line-height:1;flex:none;padding:0 0 3px}
+.phase{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:900;white-space:nowrap}
+h2{font-family:var(--display);font-weight:400;font-size:28px;margin:0;line-height:1.1;text-wrap:balance}
+h3{margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.1em;font-weight:900;color:var(--muted)}
+p{margin:0;line-height:1.5;color:var(--muted)}
+p b{color:var(--fg)}
+.panel{background:var(--table);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.row{display:flex;gap:10px;align-items:center}
+.stepper{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.stepper .name{font-weight:800;display:flex;align-items:center;gap:8px}
+.stepper .ctl{display:flex;align-items:center;gap:10px}
+.stepper .val{font-family:var(--display);font-size:22px;min-width:28px;text-align:center;font-variant-numeric:tabular-nums}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+button{font-family:var(--body);font-weight:800;font-size:16px;border:0;border-radius:12px;cursor:pointer;color:var(--ink);touch-action:manipulation}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn{background:var(--accent);padding:15px 18px;width:100%;box-shadow:0 3px 0 #a87412;transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #a87412}
+.btn.ghost{background:transparent;color:var(--fg);border:1.5px solid var(--line);box-shadow:none}
+.btn.red{background:var(--uc);box-shadow:0 3px 0 #8e2655}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btns{display:flex;flex-direction:column;gap:10px}
+.round{width:40px;height:40px;border-radius:50%;background:var(--line);color:var(--fg);font-size:20px;line-height:1;flex:none}
+.round:disabled{opacity:.3}
+input[type=text]{width:100%;box-sizing:border-box;background:var(--bg);border:1.5px solid var(--line);color:var(--fg);
+  font:700 16px var(--body);padding:12px 14px;border-radius:10px;min-width:0}
+.names{display:flex;flex-direction:column;gap:8px}
+.names .n{display:flex;gap:8px;align-items:center}
+.names .n .num{font-family:var(--display);color:var(--muted);width:24px;text-align:right;flex:none;font-variant-numeric:tabular-nums}
+.names .n button{background:var(--line);color:var(--fg);width:44px;height:44px;flex:none}
+.empty{padding:14px;border:1.5px dashed var(--line);border-radius:10px;text-align:center;color:var(--muted);font-weight:700}
+.err{color:var(--uc);font-weight:800;font-size:14px}
+.small{font-size:13px}
+/* switches */
+.sw-row{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.sw-row:first-of-type{border-top:0}
+.sw-row .ic{font-size:22px;width:30px;text-align:center;flex:none;line-height:1.2}
+.sw-row .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.sw-row .tx b{font-size:15px}
+.sw-row .tx span{font-size:13px;color:var(--muted);line-height:1.4}
+.sw-row .tx em{font-style:normal;font-size:11px;font-weight:900;color:var(--uc);text-transform:uppercase;letter-spacing:.08em}
+.sw-row .tx .new{color:var(--accent)}
+.switch{width:50px;height:30px;border-radius:999px;background:var(--line);position:relative;flex:none;margin-top:2px;transition:background .15s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--fg);transition:transform .15s}
+.switch[aria-checked=true]{background:var(--accent)}
+.switch[aria-checked=true]::after{transform:translateX(20px);background:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:transparent;border:1.5px solid var(--line);color:var(--muted);padding:8px 12px;border-radius:999px;font-size:14px}
+.chip[aria-pressed=true]{background:var(--raise);border-color:var(--accent);color:var(--fg)}
+.chip small{color:var(--muted);font-weight:700;margin-left:4px}
+details{background:var(--table);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+details summary{font-weight:800;cursor:pointer}
+details ul{margin:10px 0 0;padding-left:18px;color:var(--muted);line-height:1.55;display:flex;flex-direction:column;gap:4px}
+/* home tiles */
+.tiles{display:grid;gap:12px}
+.tile{display:grid;grid-template-columns:64px minmax(0,1fr);gap:14px;align-items:center;text-align:left;background:var(--table);border:1px solid var(--line);
+  border-radius:16px;padding:14px;color:var(--fg);transition:transform .1s}
+.tile:active{transform:scale(.98)}
+.tile .glyph{width:64px;height:64px;border-radius:14px;display:grid;place-items:center;font-family:var(--display);font-size:30px;color:var(--ink)}
+.tile .tx{display:flex;flex-direction:column;gap:3px;min-width:0}
+.tile .tn{font-family:var(--display);font-size:22px;font-weight:400;line-height:1.1}
+.tile .td{color:var(--muted);font-size:14px;font-weight:700;line-height:1.4}
+.tile .tm{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);font-weight:900}
+/* cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+.pcard{aspect-ratio:3/4;max-width:100%;border-radius:12px;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;padding:8px;text-align:center;position:relative;box-shadow:0 3px 0 #0006;transition:transform .15s}
+.pcard:not(:disabled):active{transform:scale(.96)}
+.pcard .who{font-weight:900;font-size:15px;word-break:break-word;line-height:1.2}
+.pcard.sel{outline:3px solid var(--accent);transform:translateY(-3px)}
+.pcard.dead{background:transparent;border:1.5px dashed var(--line);color:var(--muted);box-shadow:none}
+.pcard.dead .av{filter:grayscale(1);opacity:.45}
+.av{width:46px;height:46px;border-radius:50%;background:var(--avc);color:var(--ink);display:grid;place-items:center;font-family:var(--display);font-size:22px;flex:none;line-height:1}
+.bigav{display:flex;flex-direction:column;align-items:center;gap:10px}
+.bigav .av{width:96px;height:96px;font-size:44px}
+.bigav b{font-family:var(--display);font-weight:400;font-size:26px}
+.cardback{aspect-ratio:3/4;max-width:100%;border-radius:12px;border:3px solid var(--paper);
+  background:repeating-linear-gradient(45deg,#2b3768 0 7px,#25305c 7px 14px);display:grid;place-items:center;box-shadow:0 3px 0 #0006;transition:transform .15s}
+.cardback:not(:disabled):active{transform:scale(.95) rotate(-2deg)}
+.cardback .mono{font-family:var(--display);font-size:30px;color:var(--accent);background:var(--bg);width:52px;height:52px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--accent)}
+.cardback.taken{background:var(--line);border-color:var(--line);box-shadow:none;color:var(--muted);font-weight:900;padding:8px;text-align:center;word-break:break-word;font-size:14px}
+.tag{font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:900;padding:3px 8px;border-radius:999px;color:var(--ink);white-space:nowrap}
+.tag.civ,.tag.town{background:var(--civ)}.tag.uc,.tag.mafia{background:var(--uc)}.tag.mw{background:var(--mw)}.tag.sp{background:var(--sp)}
+.tag.gold,.tag.jester{background:var(--accent)}
+/* reveal sheet */
+.sheet{position:fixed;inset:0;background:#0b0f1cf5;display:flex;align-items:center;justify-content:center;z-index:20;overflow-y:auto;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet .inner{width:100%;max-width:420px;display:flex;flex-direction:column;gap:14px;text-align:center;margin:auto}
+.bigcard{width:100%;background:var(--paper);color:var(--ink);border-radius:18px;padding:26px 20px;min-height:220px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px;user-select:none;-webkit-user-select:none;box-shadow:0 4px 0 #0008}
+button.bigcard{cursor:pointer}
+.bigcard.back{background:repeating-linear-gradient(45deg,#2b3768 0 9px,#25305c 9px 18px);border:4px solid var(--paper);color:var(--fg)}
+.bigcard.back .hint{color:var(--fg)}
+.bigcard.flip{animation:flip .25s ease-out}
+@keyframes flip{from{transform:rotateY(80deg) scale(.95)}to{transform:none}}
+.bigcard .word{font-family:var(--display);font-size:clamp(28px,8.5vw,42px);line-height:1.15;word-break:break-word}
+.bigcard .hint{color:var(--ink2);font-weight:800;line-height:1.4}
+.bigcard .secret{background:#e6e0d2;border-radius:10px;padding:10px 12px;font-weight:800;font-size:14px;line-height:1.45;color:var(--ink)}
+.langbtn{align-self:center;background:var(--raise);color:var(--fg);padding:10px 22px;border-radius:999px;font-family:"Cairo",var(--body)}
+[dir=rtl],.ar{font-family:"Cairo",var(--body)}
+/* banners & lists */
+.banner{display:flex;gap:12px;align-items:center;background:var(--raise);border-radius:12px;padding:12px 14px;font-weight:700;line-height:1.4}
+.banner .ic{font-size:22px;flex:none}
+.order{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none;counter-reset:o}
+.order li{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:10px;background:var(--bg);font-weight:800}
+.order li::before{counter-increment:o;content:counter(o);font-family:var(--display);color:var(--accent);min-width:22px;font-variant-numeric:tabular-nums}
+.order li .av{width:30px;height:30px;font-size:14px}
+.order li .tag{margin-left:auto}
+.order.plain li::before{display:none}
+.order li.dead{color:var(--muted)}
+.order li.dead .av{filter:grayscale(1);opacity:.45}
+.counts{display:flex;gap:8px;flex-wrap:wrap}
+.score{display:flex;flex-direction:column;gap:6px}
+.score .s{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 12px;background:var(--bg);border-radius:10px;font-weight:800}
+.score .s .r{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.score .s b{font-family:var(--display);font-weight:400;color:var(--accent);font-variant-numeric:tabular-nums}
+.score .s.dead span:first-child{color:var(--muted);text-decoration:line-through}
+.words{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.words div{background:var(--table);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;align-items:flex-start;min-width:0}
+.words strong{font-size:19px;word-break:break-word}
+.words .ar{color:var(--muted);font-weight:800}
+.words.one{grid-template-columns:1fr}
+.progress{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);transition:width .2s}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:minmax(0,7.5em) 1fr 2em;gap:10px;align-items:center;font-weight:800}
+.bar .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .tr{height:14px;background:var(--bg);border-radius:99px;overflow:hidden}
+.bar .tr i{display:block;height:100%;background:var(--muted);border-radius:99px}
+.bar.top .tr i{background:var(--uc)}
+.bar .n{font-family:var(--display);text-align:right;font-variant-numeric:tabular-nums}
+.note{background:var(--raise);border-left:4px solid var(--accent);border-radius:8px;padding:10px 12px;font-weight:700;line-height:1.4}
+.note.good{border-color:var(--civ)}.note.bad{border-color:var(--uc)}
+@keyframes fillbar{to{width:100%}}
+.timer{font-family:var(--display);font-size:64px;text-align:center;font-variant-numeric:tabular-nums;line-height:1}
+.timer.low{color:var(--uc)}
+.locgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.loc{background:var(--paper);color:var(--ink);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;text-align:left;font-size:15px}
+.loc small{font-family:"Cairo",var(--body);color:var(--ink2);font-weight:800;font-size:13px}
+.chips .av{width:26px;height:26px;font-size:12px}
+.loclist{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;color:var(--muted);font-weight:700;font-size:14px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,40px);opacity:0;background:var(--paper);color:var(--ink);
+  padding:12px 18px;border-radius:12px;font-weight:800;z-index:40;transition:all .25s;max-width:calc(100% - 32px);text-align:center;pointer-events:none}
+.toast.on{transform:translate(-50%,0);opacity:1}
+.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+.win-title{font-size:36px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="app" id="app"></div>
+
+<script>
+/* ============================================================
+   ODD WORD — word pairs. Each line: English A | Arabic A | English B | Arabic B
+   ============================================================ */
+const CATS = {
+food:{name:"Food & drinks", list:`Coffee|قهوة|Tea|شاي
+Pizza|بيتزا|Burger|برغر
+Honey|عسل|Jam|مربى
+Lemon|ليمون|Orange|برتقال
+Bread|خبز|Croissant|كرواسون
+Ice cream|مثلجات|Yogurt|ياغورت
+Watermelon|دلاع|Melon|بطيخ أصفر
+Carrot|جزر|Potato|بطاطا
+Chocolate|شوكولاتة|Caramel|كراميل
+Milk|حليب|Juice|عصير
+Apple|تفاح|Pear|إجاص
+Banana|موز|Mango|مانجو
+Strawberry|فراولة|Cherry|كرز
+Couscous|كسكسي|Rice|أرز
+Spaghetti|سباغيتي|Lasagna|لازانيا
+Egg|بيض|Cheese|جبن
+Tomato|طماطم|Pepper|فلفل
+Onion|بصل|Garlic|ثوم
+Salt|ملح|Sugar|سكر
+Cake|كعكة|Cookie|بسكويت
+Soup|شوربة|Stew|مرق
+Popcorn|فشار|Chips|شيبس
+Water|ماء|Soda|مشروب غازي
+Olive oil|زيت زيتون|Butter|زبدة
+Harissa|هريسة|Ketchup|كاتشب
+Dates|تمر|Figs|تين
+Grapes|عنب|Olives|زيتون
+Chicken|دجاج|Turkey|ديك رومي
+Fish|سمك|Shrimp|جمبري
+Merguez|مرقاز|Sausage|نقانق
+Pancake|فطيرة|Waffle|وافل
+Donut|دونات|Muffin|مافن
+Sandwich|سندويتش|Hot dog|هوت دوغ
+Mint|نعناع|Basil|حبق
+Cinnamon|قرفة|Ginger|زنجبيل
+Peanut|فول سوداني|Almond|لوز
+Cucumber|خيار|Zucchini|كوسة
+Coconut|جوز الهند|Pineapple|أناناس
+Lollipop|مصاصة|Chewing gum|علكة
+Hot chocolate|شوكولاتة ساخنة|Cappuccino|كابتشينو
+Breakfast|فطور الصباح|Dinner|عشاء
+Mayonnaise|مايونيز|Mustard|خردل
+Peach|خوخ|Apricot|مشمش`},
+animals:{name:"Animals", list:`Cat|قطة|Tiger|نمر
+Lion|أسد|Bear|دب
+Wolf|ذئب|Dog|كلب
+Fox|ثعلب|Raccoon|راكون
+Shark|قرش|Dolphin|دلفين
+Camel|جمل|Horse|حصان
+Bee|نحلة|Wasp|دبور
+Owl|بومة|Eagle|نسر
+Snake|ثعبان|Lizard|سحلية
+Rabbit|أرنب|Hamster|هامستر
+Elephant|فيل|Rhino|وحيد القرن
+Giraffe|زرافة|Zebra|حمار وحشي
+Monkey|قرد|Gorilla|غوريلا
+Hen|دجاجة|Duck|بطة
+Cow|بقرة|Buffalo|جاموس
+Sheep|خروف|Goat|ماعز
+Mouse|فأر|Squirrel|سنجاب
+Penguin|بطريق|Seal|فقمة
+Parrot|ببغاء|Pigeon|حمامة
+Butterfly|فراشة|Dragonfly|يعسوب
+Ant|نملة|Spider|عنكبوت
+Mosquito|بعوضة|Fly|ذبابة
+Frog|ضفدع|Turtle|سلحفاة
+Crocodile|تمساح|Dinosaur|ديناصور
+Octopus|أخطبوط|Jellyfish|قنديل البحر
+Whale|حوت|Hippo|فرس النهر
+Kangaroo|كنغر|Koala|كوالا
+Panda|باندا|Polar bear|دب قطبي
+Peacock|طاووس|Flamingo|فلامنغو
+Bat|خفاش|Crow|غراب
+Donkey|حمار|Mule|بغل
+Scorpion|عقرب|Cockroach|صرصور
+Snail|حلزون|Worm|دودة
+Gazelle|غزال|Deer|أيل
+Unicorn|يونيكورن|Dragon|تنين`},
+places:{name:"Places", list:`Beach|شاطئ|Desert|صحراء
+Library|مكتبة|Bookshop|محل كتب
+Hospital|مستشفى|Pharmacy|صيدلية
+Airport|مطار|Train station|محطة قطار
+Cinema|سينما|Theatre|مسرح
+Market|سوق|Supermarket|سوبرماركت
+Castle|قلعة|Palace|قصر
+Mosque|جامع|Church|كنيسة
+School|مدرسة|University|جامعة
+Restaurant|مطعم|Café|مقهى
+Hotel|فندق|Camping|تخييم
+Zoo|حديقة حيوانات|Farm|مزرعة
+Park|حديقة|Forest|غابة
+Gym|قاعة رياضة|Stadium|ملعب
+Bank|بنك|Post office|مكتب بريد
+Prison|سجن|Police station|مركز شرطة
+Museum|متحف|Art gallery|معرض فني
+Hammam|حمام|Sauna|ساونا
+Swimming pool|مسبح|Lake|بحيرة
+Kitchen|مطبخ|Living room|صالون
+Island|جزيرة|Oasis|واحة
+City|مدينة|Village|قرية
+Paris|باريس|London|لندن
+New York|نيويورك|Dubai|دبي
+Egypt|مصر|Morocco|المغرب
+Italy|إيطاليا|Spain|إسبانيا
+Japan|اليابان|China|الصين
+Bakery|مخبزة|Pastry shop|محل حلويات
+Garage|مستودع|Car park|موقف سيارات
+Embassy|سفارة|Consulate|قنصلية
+Wedding hall|قاعة أفراح|Meeting room|قاعة اجتماعات
+Amusement park|مدينة ملاهي|Water park|حديقة مائية
+Cemetery|مقبرة|Haunted house|بيت مسكون`},
+objects:{name:"Objects & transport", list:`Pencil|قلم رصاص|Pen|قلم حبر
+Mirror|مرآة|Window|نافذة
+Phone|هاتف|Tablet|لوحة رقمية
+Pillow|وسادة|Blanket|غطاء
+Clock|ساعة حائط|Watch|ساعة يد
+Fork|شوكة|Spoon|ملعقة
+Knife|سكين|Scissors|مقص
+Shoes|حذاء|Socks|جوارب
+Wallet|محفظة|Bag|حقيبة
+Candle|شمعة|Lamp|مصباح
+Soap|صابون|Shampoo|شامبو
+Perfume|عطر|Deodorant|مزيل عرق
+Umbrella|مظلة|Raincoat|معطف مطر
+Chair|كرسي|Sofa|أريكة
+Bed|سرير|Hammock|أرجوحة شبكية
+Fridge|ثلاجة|Freezer|مجمد
+Oven|فرن|Microwave|ميكروويف
+Key|مفتاح|Lock|قفل
+Toothbrush|فرشاة أسنان|Comb|مشط
+Glasses|نظارات|Sunglasses|نظارات شمسية
+Hat|قبعة|Helmet|خوذة
+Ring|خاتم|Necklace|عقد
+T-shirt|تيشرت|Shirt|قميص
+Jeans|جينز|Shorts|شورت
+Dress|فستان|Skirt|تنورة
+Backpack|حقيبة ظهر|Suitcase|حقيبة سفر
+Book|كتاب|Notebook|كراس
+Bottle|قارورة|Cup|كوب
+Plate|صحن|Bowl|وعاء
+Towel|منشفة|Tissue|منديل
+Door|باب|Gate|بوابة
+Hammer|مطرقة|Screwdriver|مفك
+Broom|مكنسة|Vacuum cleaner|مكنسة كهربائية
+Balloon|بالون|Kite|طائرة ورقية
+Map|خريطة|Compass|بوصلة
+Coin|قطعة نقدية|Banknote|ورقة نقدية
+Remote control|جهاز تحكم|Joystick|عصا تحكم
+Elevator|مصعد|Stairs|درج
+Car|سيارة|Truck|شاحنة
+Train|قطار|Bus|حافلة
+Bicycle|دراجة|Motorbike|دراجة نارية
+Taxi|تاكسي|Uber|أوبر
+Plane|طائرة|Helicopter|مروحية
+Boat|قارب|Ship|سفينة`},
+people:{name:"People & jobs", list:`Doctor|طبيب|Nurse|ممرض
+Pilot|طيار|Astronaut|رائد فضاء
+Teacher|أستاذ|Student|تلميذ
+Painter|رسام|Photographer|مصور
+Dentist|طبيب أسنان|Barber|حلاق
+Police officer|شرطي|Soldier|جندي
+Chef|طباخ|Baker|خباز
+Lawyer|محامي|Judge|قاضي
+Firefighter|رجل إطفاء|Lifeguard|منقذ
+Singer|مغني|Dancer|راقص
+Actor|ممثل|Director|مخرج
+Farmer|فلاح|Fisherman|صياد
+Mechanic|ميكانيكي|Electrician|كهربائي
+Plumber|سباك|Carpenter|نجار
+Waiter|نادل|Cashier|أمين صندوق
+Journalist|صحفي|Writer|كاتب
+Engineer|مهندس|Architect|مهندس معماري
+Programmer|مبرمج|Hacker|هاكر
+Pirate|قرصان|Viking|فايكنغ
+Ghost|شبح|Zombie|زومبي
+King|ملك|President|رئيس
+Prince|أمير|Knight|فارس
+Witch|ساحرة|Fairy|جنية
+Grandma|جدة|Aunt|خالة
+Baby|رضيع|Child|طفل
+Bride|عروس|Groom|عريس
+Neighbor|جار|Friend|صديق
+Boss|مدير|Colleague|زميل
+Vampire|مصاص دماء|Werewolf|مستذئب
+Detective|محقق|Spy|جاسوس
+Taxi driver|سائق تاكسي|Bus driver|سائق حافلة
+Robot|روبوت|Alien|كائن فضائي`},
+nature:{name:"Nature & weather", list:`Rain|مطر|Snow|ثلج
+Moon|قمر|Sun|شمس
+Mountain|جبل|Volcano|بركان
+River|نهر|Waterfall|شلال
+Thunder|رعد|Lightning|برق
+Wind|ريح|Storm|عاصفة
+Star|نجمة|Planet|كوكب
+Rose|وردة|Tulip|توليب
+Tree|شجرة|Bush|شجيرة
+Fire|نار|Smoke|دخان
+Cloud|سحابة|Fog|ضباب
+Rainbow|قوس قزح|Sunset|غروب
+Earthquake|زلزال|Tsunami|تسونامي
+Summer|صيف|Spring|ربيع
+Winter|شتاء|Autumn|خريف
+Sand|رمل|Mud|طين
+Gold|ذهب|Silver|فضة
+Diamond|ماس|Crystal|كريستال
+Ice|جليد|Glass|زجاج
+Cactus|صبار|Palm tree|نخلة
+Cave|كهف|Tunnel|نفق
+Day|نهار|Night|ليل
+Sandstorm|عاصفة رملية|Tornado|إعصار
+Shadow|ظل|Reflection|انعكاس
+Sea|بحر|Ocean|محيط`},
+sports:{name:"Sports & hobbies", list:`Football|كرة قدم|Basketball|كرة سلة
+Chess|شطرنج|Checkers|ضامة
+Tennis|تنس|Ping pong|تنس طاولة
+Swimming|سباحة|Diving|غوص
+Boxing|ملاكمة|Wrestling|مصارعة
+Karate|كاراتيه|Judo|جودو
+Volleyball|كرة طائرة|Handball|كرة يد
+Running|جري|Walking|مشي
+Skiing|تزلج|Surfing|ركوب الأمواج
+Golf|غولف|Billiards|بلياردو
+Cards|كارطة|Dominoes|دومينو
+Rubik's cube|مكعب روبيك|Puzzle|بازل
+Guitar|قيتارة|Violin|كمان
+Piano|بيانو|Accordion|أكورديون
+Drum|طبل|Darbuka|دربوكة
+Camping|تخييم|Hiking|تسلق الجبال
+Fishing|صيد السمك|Hunting|صيد
+Pottery|فخار|Sculpture|نحت
+Dancing|رقص|Singing|غناء
+Video games|ألعاب فيديو|Board games|ألعاب طاولة
+Yoga|يوغا|Pilates|بيلاتس
+Marathon|ماراثون|Sprint|سباق سرعة
+Goalkeeper|حارس مرمى|Referee|حكم
+Penalty|ضربة جزاء|Free kick|ضربة حرة
+World Cup|كأس العالم|Champions League|دوري الأبطال
+Medal|ميدالية|Trophy|كأس
+Skateboard|لوح تزلج|Scooter|سكوتر
+Hide and seek|الغميضة|Treasure hunt|البحث عن الكنز
+Reading|مطالعة|Writing|كتابة`},
+tech:{name:"Tech & internet", list:`Netflix|نتفليكس|YouTube|يوتيوب
+Instagram|إنستغرام|TikTok|تيك توك
+Facebook|فيسبوك|Twitter|تويتر
+WhatsApp|واتساب|Messenger|ماسنجر
+Laptop|حاسوب محمول|Desktop PC|حاسوب مكتبي
+Keyboard|لوحة مفاتيح|Computer mouse|فأرة الحاسوب
+Headphones|سماعات|Speaker|مكبر صوت
+Camera|كاميرا|Drone|درون
+PlayStation|بلايستيشن|Xbox|إكسبوكس
+Google|غوغل|Wikipedia|ويكيبيديا
+Wi-Fi|واي فاي|Bluetooth|بلوتوث
+Password|كلمة سر|PIN code|رمز سري
+Selfie|سيلفي|Group photo|صورة جماعية
+Email|بريد إلكتروني|Letter|رسالة
+Television|تلفاز|Radio|راديو
+Charger|شاحن|Battery|بطارية
+Rocket|صاروخ|Satellite|قمر صناعي
+Podcast|بودكاست|Audiobook|كتاب صوتي
+Emoji|إيموجي|Sticker|ملصق
+Virus|فيروس|Bug|خلل برمجي
+ChatGPT|شات جي بي تي|Siri|سيري
+Printer|طابعة|Scanner|ماسح ضوئي
+Smartwatch|ساعة ذكية|AirPods|إيربودز
+Minecraft|ماينكرافت|Roblox|روبلوكس
+Fortnite|فورتنايت|PUBG|ببجي
+FIFA|فيفا|PES|بيس`},
+tunisia:{name:"Tunisia", list:`Brik|بريك|Fricassé|فريكاسي
+Lablabi|لبلابي|Chorba|شربة
+Makroudh|مقروض|Baklawa|بقلاوة
+Bambalouni|بمبالوني|Zlabia|زلابية
+Ojja|عجة|Shakshuka|شكشوكة
+Kafteji|كفتاجي|Mechouia|سلاطة مشوية
+Mloukhia|ملوخية|Kamounia|كمونية
+Tabouna bread|خبز طابونة|Mlawi|ملاوي
+Bsissa|بسيسة|Drôo|درع
+Sidi Bou Said|سيدي بوسعيد|La Marsa|المرسى
+Djerba|جربة|Kerkennah|قرقنة
+Carthage|قرطاج|El Jem|الجم
+Hammamet|الحمامات|Monastir|المنستير
+Sousse|سوسة|Sfax|صفاقس
+Tozeur|توزر|Douz|دوز
+Tunis|تونس|Bizerte|بنزرت
+Medina|المدينة العتيقة|Souk|السوق
+Chechia|شاشية|Jebba|جبة
+Sefsari|سفساري|Burnous|برنوس
+Louage|لواج|TGM|تي جي آم
+Espérance|الترجي|Club Africain|الإفريقي
+Étoile du Sahel|النجم الساحلي|CS Sfaxien|النادي الصفاقسي
+Bac exam|الباكالوريا|Concours|المناظرة
+Eid|العيد|Ramadan|رمضان
+Wedding|عرس|Henna night|ليلة الحنة
+Mezoued|مزود|Malouf|مالوف
+Jasmine|ياسمين|Orange blossom|زهر
+Deglet Nour|دقلة نور|Olive harvest|جني الزيتون`},
+pop:{name:"Pop culture", list:`Messi|ميسي|Ronaldo|رونالدو
+Mbappé|مبابي|Neymar|نيمار
+Spider-Man|سبايدرمان|Iron Man|آيرون مان
+Superman|سوبرمان|Batman|باتمان
+Harry Potter|هاري بوتر|Lord of the Rings|سيد الخواتم
+Mickey Mouse|ميكي ماوس|Donald Duck|دونالد داك
+SpongeBob|سبونج بوب|Tom and Jerry|توم وجيري
+Naruto|ناروتو|One Piece|ون بيس
+Dragon Ball|دراغون بول|Captain Majed|الكابتن ماجد
+Titanic|تايتانيك|Avatar|أفاتار
+Barbie|باربي|Elsa|إلسا
+Shrek|شريك|Minions|المينيونز
+Mario|ماريو|Sonic|سونيك
+Joker|الجوكر|Thanos|ثانوس
+Squid Game|لعبة الحبار|Money Heist|لاكاسا دي بابيل
+Michael Jackson|مايكل جاكسون|Eminem|إمينيم
+Einstein|أينشتاين|Newton|نيوتن
+Picasso|بيكاسو|Da Vinci|دافنشي
+Eiffel Tower|برج إيفل|Statue of Liberty|تمثال الحرية
+Pyramids|الأهرامات|Great Wall of China|سور الصين العظيم
+Real Madrid|ريال مدريد|Barcelona|برشلونة
+Coca-Cola|كوكاكولا|Pepsi|بيبسي
+McDonald's|ماكدونالدز|KFC|كنتاكي
+iPhone|آيفون|Samsung|سامسونغ
+Nike|نايكي|Adidas|أديداس
+Ferrari|فيراري|Lamborghini|لامبورغيني
+Star Wars|حرب النجوم|Transformers|المتحولون
+Aladdin|علاء الدين|Sinbad|السندباد
+Cinderella|سندريلا|Snow White|بياض الثلج`},
+life:{name:"Everyday life", list:`Wedding|عرس|Birthday|عيد ميلاد
+Dream|حلم|Nightmare|كابوس
+Love|حب|Friendship|صداقة
+Exam|امتحان|Homework|فرض منزلي
+Holiday|عطلة|Weekend|نهاية الأسبوع
+Party|حفلة|Concert|حفل موسيقي
+Hug|عناق|Handshake|مصافحة
+Laugh|ضحك|Smile|ابتسامة
+Secret|سر|Lie|كذبة
+Headache|صداع|Toothache|ألم الأسنان
+Shower|دوش|Bathtub|بانيو
+Alarm clock|منبه|Doorbell|جرس الباب
+Salary|مرتب|Bonus|منحة
+Queue|طابور|Traffic jam|زحمة
+Picnic|نزهة|Barbecue|شواء
+Diet|ريجيم|Fasting|صيام
+Sleep|نوم|Nap|قيلولة
+Ticket|تذكرة|Passport|جواز سفر
+Gift|هدية|Surprise|مفاجأة`}
+};
+for(const k in CATS) CATS[k].pairs = CATS[k].list.trim().split("\n").map(l=>l.split("|").map(s=>s.trim()));
+
+/* ============================================================
+   THE SPY — locations. Each line: English | Arabic | role:دور, ...
+   ============================================================ */
+const LOCS_RAW = `Airplane|طائرة|Pilot:طيار,Flight attendant:مضيف طيران,Passenger:مسافر,Air marshal:حارس جوي,Mechanic:ميكانيكي,Crying baby:رضيع يبكي,First class passenger:مسافر درجة أولى
+Hospital|مستشفى|Doctor:طبيب,Nurse:ممرض,Patient:مريض,Surgeon:جراح,Visitor:زائر,Receptionist:موظف استقبال,Cleaner:عامل نظافة
+School|مدرسة|Teacher:أستاذ,Student:تلميذ,Principal:مدير,Guard:حارس,Parent:ولي,Cook:طباخ,Supervisor:قيّم
+Beach|شاطئ|Lifeguard:منقذ,Swimmer:سباح,Ice cream seller:بائع مثلجات,Tourist:سائح,Surfer:راكب أمواج,Photographer:مصور,Child:طفل
+Restaurant|مطعم|Chef:طباخ,Waiter:نادل,Customer:زبون,Cashier:أمين صندوق,Food critic:ناقد طعام,Dishwasher:غاسل صحون,Manager:مدير
+Bank|بنك|Teller:موظف شباك,Manager:مدير,Client:حريف,Security guard:حارس,Robber:لص,Accountant:محاسب,Cleaner:عامل نظافة
+Hammam|حمّام|Kessal:كيّاس,Customer:حريف,Owner:صاحب الحمام,Child:طفل,Grandfather:جد,Cashier:أمين صندوق,Tourist:سائح
+Football stadium|ملعب كرة قدم|Player:لاعب,Referee:حكم,Coach:مدرب,Fan:مشجع,Journalist:صحفي,Goalkeeper:حارس مرمى,Police officer:شرطي
+Wedding|عرس|Bride:عروس,Groom:عريس,Singer:مغني,Guest:ضيف,Photographer:مصور,Mother of the bride:أم العروس,Cook:طباخ
+Cinema|سينما|Viewer:متفرج,Ticket seller:بائع تذاكر,Popcorn seller:بائع فشار,Projectionist:عارض الأفلام,Couple:زوجان,Critic:ناقد,Guard:حارس
+Police station|مركز شرطة|Police officer:شرطي,Detective:محقق,Suspect:مشتبه به,Lawyer:محامي,Witness:شاهد,Chief:رئيس المركز,Journalist:صحفي
+Space station|محطة فضاء|Astronaut:رائد فضاء,Commander:قائد,Engineer:مهندس,Scientist:عالم,Doctor:طبيب,Alien:كائن فضائي,Space tourist:سائح فضاء
+Pirate ship|سفينة قراصنة|Captain:قبطان,Sailor:بحار,Cook:طباخ,Prisoner:سجين,Cannoneer:رامي مدفع,Navigator:ملاح,Lookout:مراقب
+Supermarket|سوبرماركت|Cashier:أمين صندوق,Customer:زبون,Butcher:جزار,Guard:حارس,Manager:مدير,Delivery driver:سائق توصيل,Shelf stocker:عامل رفوف
+Train|قطار|Driver:سائق,Ticket inspector:مراقب تذاكر,Passenger:مسافر,Student:طالب,Snack seller:بائع مأكولات,Soldier:جندي,Grandmother:جدة
+Hotel|فندق|Receptionist:موظف استقبال,Guest:نزيل,Bellboy:حامل حقائب,Cleaner:عامل نظافة,Manager:مدير,Chef:طباخ,Lifeguard:منقذ
+Circus|سيرك|Clown:مهرج,Acrobat:بهلوان,Lion tamer:مروض أسود,Magician:ساحر,Spectator:متفرج,Juggler:لاعب خفة,Ringmaster:مقدم العرض
+Military base|قاعدة عسكرية|Soldier:جندي,General:جنرال,Sniper:قناص,Medic:مسعف,Cook:طباخ,Pilot:طيار,Guard:حارس
+University|جامعة|Professor:أستاذ,Student:طالب,Dean:عميد,Librarian:أمين مكتبة,Researcher:باحث,Guard:حارس,Cafeteria worker:عامل المطعم
+Souk|سوق|Seller:بائع,Customer:زبون,Tourist:سائح,Pickpocket:نشال,Spice merchant:بائع توابل,Carpet seller:بائع زرابي,Porter:حمّال
+Mosque|جامع|Imam:إمام,Muezzin:مؤذن,Worshipper:مصلي,Child:طفل,Guard:حارس,Visitor:زائر,Old man:شيخ
+Barber shop|محل حلاقة|Barber:حلاق,Customer:حريف,Apprentice:متعلم,Child:طفل,Waiting customer:حريف ينتظر,Owner:صاحب المحل,Friend:صديق
+Gym|قاعة رياضة|Coach:مدرب,Bodybuilder:لاعب كمال أجسام,Beginner:مبتدئ,Receptionist:موظف استقبال,Boxer:ملاكم,Cleaner:عامل نظافة,Nutritionist:أخصائي تغذية
+Zoo|حديقة حيوانات|Zookeeper:حارس الحيوانات,Visitor:زائر,Child:طفل,Vet:بيطري,Photographer:مصور,Ticket seller:بائع تذاكر,Ice cream seller:بائع مثلجات
+Café|مقهى|Waiter:نادل,Customer:حريف,Owner:صاحب المقهى,Card player:لاعب كارطة,Student:طالب,Retired man:متقاعد,Football fan:مشجع
+Desert camp|مخيم في الصحراء|Guide:دليل,Tourist:سائح,Camel driver:جمّال,Cook:طباخ,Musician:موسيقي,Photographer:مصور,Lost traveler:مسافر تائه
+Haunted house|بيت مسكون|Ghost:شبح,Ghost hunter:صياد أشباح,Owner:صاحب البيت,Child:طفل,Priest:راهب,Visitor:زائر,Black cat:قطة سوداء
+Submarine|غواصة|Captain:قبطان,Sailor:بحار,Sonar operator:مشغل السونار,Cook:طباخ,Engineer:مهندس,Diver:غواص,Radio operator:مشغل الراديو
+Airport|مطار|Pilot:طيار,Passenger:مسافر,Customs officer:عون ديوانة,Cleaner:عامل نظافة,Taxi driver:سائق تاكسي,Security guard:حارس أمن,Duty-free seller:بائع سوق حرة
+Amusement park|مدينة ملاهي|Ride operator:مشغل لعبة,Child:طفل,Parent:ولي,Cotton candy seller:بائع حلوى القطن,Mascot:دمية الملاهي,Teenager:مراهق,Guard:حارس
+Library|مكتبة|Librarian:أمين مكتبة,Student:طالب,Writer:كاتب,Researcher:باحث,Child:طفل,Guard:حارس,Old reader:قارئ عجوز
+Farm|مزرعة|Farmer:فلاح,Shepherd:راعي,Vet:بيطري,Tractor driver:سائق جرار,Child:طفل,Buyer:مشتري,Scarecrow:فزاعة`;
+const LOCS = LOCS_RAW.trim().split("\n").map(l=>{ const [en,ar,r]=l.split("|");
+  return {en:en.trim(), ar:ar.trim(), roles:r.split(",").map(x=>{ const [e,a]=x.split(":"); return {en:e.trim(), ar:a.trim()}; })}; });
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+const APP_NAME = ["THE ","COURT"];
+const $ = s => document.querySelector(s);
+const esc = t => String(t).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const rnd = a => a[Math.random()*a.length|0];
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];} return a; };
+function norm(t){
+  return String(t).normalize("NFD").replace(/[̀-ًͯ-ٰٟ]/g,"")
+    .replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي").replace(/^ال/,"")
+    .toLowerCase().replace(/[^a-z0-9؀-ۿ]/g,"");
+}
+const buzz = p => { try{ if(S.sound) navigator.vibrate && navigator.vibrate(p); }catch(e){} };
+const AV = ["#3cc4a8","#e2558f","#f2b33d","#8fa8ff","#f08a5d","#9ad16b","#c79bf2","#5fd0e6"];
+function avColor(n){ let h=7; for(const ch of String(n)) h=(h*31+ch.codePointAt(0))>>>0; return AV[h%AV.length]; }
+const avatar = n => `<span class="av" style="--avc:${avColor(n)}" aria-hidden="true">${esc(([...String(n).trim()][0]||"?").toUpperCase())}</span>`;
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const KEY = "majlis-v1";
+function defaults(){
+  return { players:[], sound:true,
+    odd:{uc:1, mw:0, manual:false, specials:{}, modes:{}, cats:Object.fromEntries(Object.keys(CATS).map(k=>[k,true])), used:[]},
+    mafia:{mafia:1, manual:false, roles:{doctor:true, detective:true}, reveal:true},
+    spy:{spies:1, manual:false, minutes:8, used:[]},
+    scores:{odd:{}, mafia:{}, spy:{}} };
+}
+function loadState(){
+  const d = defaults(); let s=null;
+  try{ s = JSON.parse(localStorage.getItem(KEY)); }catch(e){}
+  if(!s){ // carry over players and scores from the first Odd Word version
+    let o=null; try{ o = JSON.parse(localStorage.getItem("oddword-v2")); }catch(e){}
+    if(o){ d.players=o.players||[]; d.sound=o.sound!==false;
+      Object.assign(d.odd,{uc:o.uc??1, mw:o.mw??0, manual:!!o.manual, specials:o.specials||{}, used:o.used||[]});
+      Object.assign(d.odd.cats, o.cats||{}); d.scores.odd=o.scores||{}; }
+    return d;
+  }
+  for(const k of ["odd","mafia","spy","scores"]) s[k] = Object.assign(d[k], s[k]||{});
+  s.odd.cats = Object.assign(defaults().odd.cats, s.odd.cats);
+  s.odd.modes = s.odd.modes||{}; s.mafia.roles = s.mafia.roles||{};
+  return Object.assign(d, s);
+}
+let S = loadState();
+let APP = {screen:"home"};   // home | odd | mafia | spy (setup screens)
+let G = null;                 // current game
+let ui = {};                  // transient screen state
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+
+/* ============================================================
+   SOUND (synthesised, no files)
+   ============================================================ */
+const SFX = (()=>{
+  let ctx;
+  const ac = () => { if(!ctx){ try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; } }
+                     if(ctx.state==="suspended") ctx.resume(); return ctx; };
+  function tone(f, d, {type="sine", v=.14, to=null, delay=0}={}){
+    if(!S.sound) return; const a=ac(); if(!a) return;
+    const t=a.currentTime+delay, o=a.createOscillator(), g=a.createGain();
+    o.type=type; o.frequency.setValueAtTime(f,t); if(to) o.frequency.exponentialRampToValueAtTime(to,t+d);
+    g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(v,t+.012); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g).connect(a.destination); o.start(t); o.stop(t+d+.03);
+  }
+  function noise(d, v=.18, delay=0){
+    if(!S.sound) return; const a=ac(); if(!a) return;
+    const b=a.createBuffer(1, a.sampleRate*d, a.sampleRate), x=b.getChannelData(0);
+    for(let i=0;i<x.length;i++) x[i]=(Math.random()*2-1)*(1-i/x.length);
+    const s=a.createBufferSource(), g=a.createGain(), fl=a.createBiquadFilter(); fl.type="lowpass"; fl.frequency.value=900;
+    s.buffer=b; g.gain.value=v; s.connect(fl).connect(g).connect(a.destination); s.start(a.currentTime+delay);
+  }
+  const arp = (fs, step=.1, o={}) => fs.forEach((f,i)=>tone(f, o.d||.22, {...o, delay:(o.delay||0)+i*step}));
+  return {
+    tap:  ()=>tone(540,.05,{type:"triangle",v:.07}),
+    flip: ()=>{ noise(.08,.12); tone(320,.14,{type:"triangle",to:760,v:.1}); },
+    vote: ()=>tone(700,.07,{type:"square",v:.045}),
+    drum: ()=>{ for(let i=0;i<8;i++) tone(110,.08,{type:"triangle",v:.12,delay:i*.07}); },
+    out:  ()=>{ tone(420,.6,{type:"sawtooth",to:70,v:.09}); noise(.35,.2); },
+    good: ()=>arp([660,880],.08,{type:"triangle"}),
+    bad:  ()=>arp([300,220],.12,{type:"square",v:.06}),
+    heart:()=>arp([523,392,330,262],.16,{type:"sine",d:.3}),
+    boom: ()=>{ noise(.5,.35); tone(160,.5,{type:"sine",to:40,v:.25}); },
+    night:()=>arp([392,330,262],.25,{type:"sine",d:.5,v:.1}),
+    dawn: ()=>arp([262,330,392,523],.15,{type:"triangle",d:.35,v:.1}),
+    tick: ()=>tone(1200,.03,{type:"square",v:.03}),
+    win:  ()=>{ arp([523,659,784,1047],.11,{type:"triangle",d:.3}); arp([1047,1319],.14,{type:"sine",d:.4,v:.08,delay:.5}); },
+  };
+})();
+
+/* ============================================================
+   SHARED UI PIECES
+   ============================================================ */
+function pcard(i, o={}){
+  const p=G.players[i], dead=o.dead ?? (p.alive===false);
+  return `<button class="pcard ${o.sel?"sel":""} ${dead?"dead":""}" ${o.act&&!dead?`data-act="${o.act}" data-arg="${o.arg??i}"`:""} ${dead||o.disabled?"disabled":""}>
+    ${avatar(p.name)}<span class="who">${esc(p.name)}</span>${o.sub||""}</button>`;
+}
+const alive = () => G.players.map((p,i)=>i).filter(i=>G.players[i].alive!==false);
+function barsHTML(c, top){
+  const ids=Object.keys(c).map(Number).sort((a,b)=>c[b]-c[a]), max=Math.max(1,...Object.values(c));
+  return `<div class="panel"><div class="bars">${ids.map(i=>`<div class="bar ${top.includes(i)?"top":""}"><span class="nm">${esc(G.players[i].name)}</span><span class="tr"><i style="width:${c[i]/max*100}%"></i></span><span class="n">${c[i]}</span></div>`).join("")}</div></div>`;
+}
+function judge(c){
+  const max=Math.max(0,...Object.values(c));
+  if(max===0) return {kind:"none"};
+  const top=Object.keys(c).filter(i=>c[i]===max).map(Number);
+  return top.length>1 ? {kind:"tie", tied:top} : {kind:"out", i:top[0]};
+}
+function boardHTML(scores){
+  const ranked=Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+  return `<div class="panel"><h3>Leaderboard</h3><div class="score">${ranked.map(([n,s],k)=>`<div class="s"><span>${k===0&&s>0?"👑 ":""}${esc(n)}</span><b>${s}</b></div>`).join("")||"<p>No points yet.</p>"}</div></div>`;
+}
+function award(game, awards){ // awards: per-player array of [points,label]
+  G.awards = awards;
+  G.players.forEach((p,i)=>{ const pts=awards[i].reduce((s,[v])=>s+v,0); S.scores[game][p.name]=(S.scores[game][p.name]||0)+pts; });
+  save();
+}
+const ptsTag = v => `<span class="tag gold">${v>0?"+":""}${v}</span>`;
+function sw(id, on, label){ return `<button class="switch" role="switch" aria-checked="${!!on}" aria-label="${esc(label)}" data-act="toggle" data-arg="${id}"></button>`; }
+function swRow(icon, name, desc, id, on, extra=""){
+  return `<div class="sw-row"><div class="ic" aria-hidden="true">${icon}</div><div class="tx"><b>${name}</b><span>${desc}</span>${extra}</div>${sw(id,on,name)}</div>`;
+}
+function stepRow(label, color, val, key, decOff, incOff){
+  return `<div class="stepper"><div class="name"><span class="dot" style="background:var(${color})"></span>${label}</div>
+    <div class="ctl">${key?`<button class="round" data-act="step" data-arg="${key}:-1" aria-label="Fewer ${label}" ${decOff?"disabled":""}>−</button>`:""}<span class="val">${val}</span>
+    ${key?`<button class="round" data-act="step" data-arg="${key}:1" aria-label="More ${label}" ${incOff?"disabled":""}>+</button>`:""}</div></div>`;
+}
+function playersError(min){
+  const n=S.players.length;
+  if(n<min) return `This game needs at least ${min} players. Add ${min-n} more above.`;
+  if(new Set(S.players.map(p=>p.toLowerCase())).size!==n) return "Two players have the same name.";
+  return "";
+}
+function playersPanel(min){
+  const n=S.players.length;
+  return `<div class="panel"><h3>Players · ${n}${min&&n<min?` · need ${min}+`:""}</h3>
+    ${n?`<div class="names">${S.players.map((p,i)=>`<div class="n"><span class="num">${i+1}</span><input type="text" id="pn${i}" data-name="${i}" value="${esc(p)}" maxlength="14" aria-label="Player ${i+1} name"><button data-act="rm" data-arg="${i}" aria-label="Remove ${esc(p)}">✕</button></div>`).join("")}</div>`
+       :`<div class="empty">No players yet. Add everyone at the table.</div>`}
+    ${n<20?`<div class="row"><input type="text" id="newname" placeholder="Player name" maxlength="14" aria-label="New player name" ${ui.focusAdd?"data-autofocus":""}><button class="round" data-act="add" aria-label="Add player" style="background:var(--accent);color:var(--ink);width:48px;height:48px">+</button></div>`:""}
+  </div>`;
+}
+function playersSummary(min){
+  const n=S.players.length;
+  return `<div class="panel"><div class="row" style="justify-content:space-between"><h3>Players · ${n}</h3><button class="chip" data-act="home">Edit</button></div>
+    <div class="chips">${S.players.map(p=>`<span class="row" style="gap:6px;font-weight:800">${avatar(p)}${esc(p)}</span>`).join("")||`<span class="err">No players yet.</span>`}</div></div>`;
+}
+
+/* ----- Deal: each player picks a face-down card ----- */
+function startDeal(cards){ G.cards=shuffle(cards); G.taken={}; G.turn=0; G.phase="deal"; ui={}; render(); SFX.flip(); }
+function dealView(){
+  const n=G.players.length, done=G.turn>=n, cur=G.players[G.turn];
+  return `${done?`<h2>Everyone has a card</h2><p>Keep your card secret. Start when everyone is ready.</p>`
+      :`<div class="bigav">${avatar(cur.name)}</div><h2 style="text-align:center">${esc(cur.name)}, pick a card</h2><p style="text-align:center">Take the phone and choose any card. Everyone else, look away.</p>`}
+  <div class="progress" aria-label="Cards picked"><i style="width:${G.turn/n*100}%"></i></div>
+  <div class="grid">${G.cards.map((_,c)=> G.taken[c]!=null
+     ? `<div class="cardback taken">${esc(G.players[G.taken[c]].name)}</div>`
+     : `<button class="cardback" data-act="pick" data-arg="${c}" aria-label="Card ${c+1}" ${done?"disabled":""}><span class="mono">?</span></button>`).join("")}</div>
+  ${done?`<button class="btn" data-act="afterDeal">Start the game</button>`:""}`;
+}
+function sheetView(){
+  const p=G.players[ui.open], g=GAMES[G.game], ar=!!ui.ar;
+  const face = ui.peek ? g.cardFace(p, ar)
+    : `<span class="word">${ar?"اضغط هنا":"Tap to reveal"}</span><span class="hint">${ar?"اضغط مرة أخرى لإخفائها":"Tap again to hide it"}</span>`;
+  const extra = g.sheetExtra ? g.sheetExtra(p, ar) : "";
+  return `<div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(p.name)}'s card"><div class="inner">
+    <div class="bigav">${avatar(p.name)}<b>${esc(p.name)}</b></div>
+    <p>Make sure nobody else can see the screen.</p>
+    <button class="bigcard ${ui.peek?"flip":"back"}" data-act="peek" ${ar?'dir="rtl"':""}>${face}</button>
+    ${extra?`<div class="btns" ${ar?'dir="rtl"':""}>${extra}</div>`:""}
+    <button class="langbtn" data-act="lang">${ar?"English":"عربي"}</button>
+    <button class="btn" data-act="gotit" ${ui.peeked?"":"disabled"}>Got it, hide my card</button>
+  </div></div>`;
+}
+function pickCardOverlay(){
+  return `<div class="sheet"><div class="inner"><h2>Whose card?</h2><p>Only that player should look.</p>
+    <div class="grid">${alive().map(i=>pcard(i,{act:"open"})).join("")}</div>
+    <button class="btn ghost" data-act="closePick">Cancel</button></div></div>`;
+}
+
+/* ----- Voting: phone goes round, each voter taps a name ----- */
+function beginVote({cands, voters, onDone, revote=false, hint}){
+  G.vote={cands, voters, votes:{}, vi:0, onDone, revote, hint};
+  skipEmptyVoters(); G.phase="vote"; ui={}; render();
+}
+const voteOptions = v => G.vote.cands.filter(i=>i!==v);
+function skipEmptyVoters(){ const V=G.vote; while(V.vi<V.voters.length && !voteOptions(V.voters[V.vi]).length) V.vi++; }
+function voteView(){
+  const V=G.vote, v=V.voters[V.vi], p=G.players[v];
+  return `<div class="row">${avatar(p.name)}<h2>${esc(p.name)}${p.alive===false?" (ghost)":""}, your vote</h2></div>
+  <p>${V.revote?"Tie-break re-vote. ":""}${V.hint||"Tap the player you want out, then pass the phone."}</p>
+  <div class="progress" aria-label="Votes cast"><i style="width:${V.vi/V.voters.length*100}%"></i></div>
+  <div class="grid">${voteOptions(v).map(i=>pcard(i,{act:"cast"})).join("")}</div>
+  ${V.vi?`<button class="btn ghost" data-act="undo">Undo last vote</button>`:`<button class="btn ghost" data-act="voteBack">Back</button>`}`;
+}
+
+/* ============================================================
+   GAME 1 — ODD WORD
+   ============================================================ */
+const SCORE = {civ:2, mw:6, uc:10};
+const ROLE_NAME = {civ:"Civilian", uc:"Undercover", mw:"Mr White"};
+const ROLE_AR = {civ:"مدني", uc:"المتخفي", mw:"مستر وايت"};
+const SPECIALS = [
+ {id:"goddess",  icon:"⚖️", name:"Goddess of Justice", min:4, desc:"Announced to everyone. Breaks tied votes, even after she's out."},
+ {id:"lovers",   icon:"💞", name:"The Lovers",         min:5, pair:true, desc:"Two secret lovers. If one is eliminated, the other leaves too."},
+ {id:"meme",     icon:"🤐", name:"Mr Meme",            min:4, perRound:true, desc:"Each round one player must give their clue with gestures only."},
+ {id:"revenger", icon:"🗡️", name:"The Revenger",       min:5, desc:"When eliminated, takes one player down with them."},
+ {id:"duelists", icon:"⚔️", name:"The Duelists",       min:5, pair:true, desc:"Two secret rivals. First one out loses 2 points, the other gains 2."},
+ {id:"ghost",    icon:"👻", name:"The Ghost",          min:4, desc:"Keeps talking and voting after being eliminated."},
+ {id:"falafel",  icon:"🧆", name:"Falafel Vendor",     min:4, desc:"Announced to everyone. Each round secretly feeds one player a good falafel (protected) or a bad one (+1 vote)."},
+ {id:"boomerang",icon:"🪃", name:"The Boomerang",      min:4, desc:"The first time they'd be voted out, the votes bounce back onto the voters."},
+ {id:"joyfool",  icon:"🤡", name:"Joy Fool",           min:4, desc:"Wins 4 bonus points if they're the first player voted out."},
+ {id:"mayor",    icon:"🎩", name:"The Mayor",          min:4, isNew:true, desc:"Secret. Their vote counts twice."},
+ {id:"detective",icon:"🔎", name:"The Detective",      min:4, isNew:true, desc:"Secret. Once per game, sees one player's role."},
+ {id:"parrot",   icon:"🦜", name:"The Parrot",         min:4, perRound:true, isNew:true, desc:"Each round one player's clue must start with the same letter as the clue before theirs."},
+];
+const ODD_MODES = [
+ {id:"informed", icon:"🕶️", name:"Undercover knows", desc:"The Undercover is told they're the Undercover. Bluffing gets harder for everyone."},
+ {id:"hidden",   icon:"🎭", name:"Secret eliminations", desc:"Eliminated players' roles stay hidden until the game ends."},
+];
+const SP = Object.fromEntries(SPECIALS.map(s=>[s.id,s]));
+const SP_OF = {lover:"lovers", duelist:"duelists"};
+
+function oddRecommended(n){
+  const t={4:[1,0],5:[1,1],6:[1,1],7:[2,1],8:[2,1],9:[2,1],10:[3,1],11:[3,1],12:[3,1],13:[3,2]};
+  const [uc,mw] = t[n] || (n<4?[1,0]:[4,2]); return {uc,mw};
+}
+// at least 2 civilians: with 1 the impostors would win before the first clue
+const oddMaxImp = n => Math.max(1, n-2);
+function oddClamp(){
+  const o=S.odd, n=S.players.length;
+  if(!o.manual) Object.assign(o, oddRecommended(Math.max(n,4)));
+  const m=oddMaxImp(n);
+  while(o.uc+o.mw>m){ if(o.mw>0 && (o.mw>=o.uc || o.uc<=1)) o.mw--; else o.uc--; }
+  if(o.uc+o.mw<1) o.uc=1;
+}
+function oddSetupView(){
+  oddClamp();
+  const o=S.odd, n=S.players.length, m=oddMaxImp(n), imp=o.uc+o.mw;
+  const err = playersError(4) || (!Object.values(o.cats).some(Boolean) ? "Pick at least one word category." : "");
+  const onCount=SPECIALS.filter(s=>o.specials[s.id]).length;
+  return `<h2>Odd Word</h2>
+  ${playersPanel(4)}
+  <div class="panel"><h3>Roles</h3>
+    ${stepRow("Civilians","--civ",Math.max(0,n-imp),"")}
+    ${stepRow("Undercover","--uc",o.uc,"odd.uc",o.uc<=0||imp<=1,imp>=m)}
+    ${stepRow("Mr White","--mw",o.mw,"odd.mw",o.mw<=0||imp<=1,imp>=m)}
+    <p class="small">${n>=4?`Any mix of impostors, as long as at least 2 Civilians are left.`:"Counts adjust as you add players."}</p>
+    ${o.manual?`<button class="btn ghost" data-act="oddAuto">Back to recommended counts</button>`:""}
+  </div>
+  <div class="panel"><h3>Game modes</h3>${ODD_MODES.map(md=>swRow(md.icon,md.name,md.desc,"odd.modes."+md.id,o.modes[md.id])).join("")}</div>
+  <div class="panel"><h3>Special roles · ${onCount} on</h3>
+    ${SPECIALS.map(s=>swRow(s.icon,s.name,s.desc,"odd.specials."+s.id,o.specials[s.id],
+      (s.isNew?`<em class="new">New</em>`:"")+(n&&n<s.min?`<em>Needs ${s.min}+ players</em>`:""))).join("")}
+  </div>
+  <div class="panel"><h3>Word categories</h3>
+    <div class="chips">${Object.entries(CATS).map(([k,c])=>`<button class="chip" aria-pressed="${!!o.cats[k]}" data-act="cat" data-arg="${k}">${c.name}<small>${c.pairs.length}</small></button>`).join("")}</div>
+  </div>
+  <details><summary>How to play</summary><ul>
+    <li>Civilians share one word. The Undercover gets a close but different word and doesn't know it. Mr White gets no word.</li>
+    <li>Each round everyone gives one clue about their word, then the group votes someone out.</li>
+    <li>Civilians win when every Undercover and Mr White is out. Impostors win when only one Civilian is left.</li>
+    <li>A Mr White who gets voted out can guess the Civilians' word. Right guess: Mr White wins alone.</li>
+    <li>Points: Civilian 2, Mr White 6, Undercover 10.</li></ul></details>
+  ${err?`<div class="err">${err}</div>`:""}
+  <button class="btn" data-act="startGame" ${err?"disabled":""}>Deal the cards</button>`;
+}
+function oddPickPair(){
+  const pool=[]; for(const k in CATS) if(S.odd.cats[k]) pool.push(...CATS[k].pairs);
+  let fresh=pool.filter(p=>!S.odd.used.includes(p[0]));
+  if(!fresh.length){ S.odd.used=S.odd.used.filter(w=>!pool.some(p=>p[0]===w)); fresh=pool; }
+  const p=rnd(fresh); S.odd.used.push(p[0]); if(S.odd.used.length>400) S.odd.used=S.odd.used.slice(-400);
+  const a={en:p[0],ar:p[1]}, b={en:p[2],ar:p[3]};
+  return Math.random()<.5?[a,b]:[b,a];
+}
+function oddNewGame(){
+  const [civ,uc]=oddPickPair(), n=S.players.length, o=S.odd;
+  const roles=[...Array(o.uc).fill("uc"), ...Array(o.mw).fill("mw"), ...Array(n-o.uc-o.mw).fill("civ")];
+  G={game:"odd", civ, uc, round:0, queue:[], skipped:[], firstVoteOut:null, duelLoser:null, goddess:null, vendor:null,
+     players:S.players.map(name=>({name, role:null, alive:true, sp:null, partner:null}))};
+  const pool=shuffle(G.players.map((p,i)=>i));
+  const on=SPECIALS.filter(s=>o.specials[s.id] && !s.perRound).sort((a,b)=>(b.pair?1:0)-(a.pair?1:0));
+  for(const s of on){
+    if(n<s.min){ G.skipped.push(`${s.name} (needs ${s.min}+ players)`); continue; }
+    const need=s.pair?2:1;
+    if(pool.length<need){ G.skipped.push(`${s.name} (not enough players for every role)`); continue; }
+    const got=pool.splice(0,need);
+    if(s.pair){ const tag=s.id==="lovers"?"lover":"duelist";
+      got.forEach((g,k)=>{ G.players[g].sp=tag; G.players[g].partner=got[1-k]; }); }
+    else { G.players[got[0]].sp=s.id; if(s.id==="goddess") G.goddess=got[0]; if(s.id==="falafel") G.vendor=got[0]; }
+  }
+  save(); startDeal(roles);
+}
+const oddWord = p => p.role==="civ"?G.civ : p.role==="uc"?G.uc : null;
+function oddCounts(){ const c={civ:0,uc:0,mw:0}; G.players.forEach(p=>{ if(p.alive) c[p.role]++; }); return c; }
+function oddCheckWin(){
+  const c=oddCounts();
+  if(c.uc===0 && c.mw===0) return ["civ"];
+  if(c.civ<=1) return [c.uc?"uc":null, c.mw?"mw":null].filter(Boolean);
+  return null;
+}
+function oddSecret(p, ar){
+  const pt = p.partner!=null ? `<b>${esc(G.players[p.partner].name)}</b>` : "";
+  const en = {
+    lover:`💞 You're in love with ${pt}. If one of you is eliminated, the other goes too.`,
+    duelist:`⚔️ You're dueling ${pt}. Outlast them for +2 points.`,
+    revenger:"🗡️ You're the Revenger. If you're eliminated, you take someone down with you.",
+    ghost:"👻 You're the Ghost. After you're eliminated you keep talking and voting.",
+    boomerang:"🪃 You're the Boomerang. The first time you'd be voted out, the votes bounce back.",
+    joyfool:"🤡 You're the Joy Fool. Get voted out first for +4 points.",
+    goddess:"⚖️ You're the Goddess of Justice. Everyone will know. You break tied votes.",
+    falafel:"🧆 You're the Falafel Vendor. Everyone will know. Each round you feed someone a falafel.",
+    mayor:"🎩 You're the Mayor. Your vote counts twice, and nobody knows.",
+    detective:"🔎 You're the Detective. Once per game you can see one player's role.",
+  };
+  const arT = {
+    lover:`💞 أنت مغرم بـ ${pt}. إذا خرج أحدكما يخرج الآخر معه.`,
+    duelist:`⚔️ أنت في مبارزة مع ${pt}. ابقَ في اللعبة أطول منه لتربح نقطتين.`,
+    revenger:"🗡️ أنت المنتقم. إذا أُقصيت تأخذ معك لاعبا آخر.",
+    ghost:"👻 أنت الشبح. بعد إقصائك تواصل الكلام والتصويت.",
+    boomerang:"🪃 أنت البومرانغ. أول مرة يُصوَّت ضدك ترتد الأصوات على أصحابها.",
+    joyfool:"🤡 أنت المهرج. إذا كنت أول من يُقصى تربح 4 نقاط.",
+    goddess:"⚖️ أنت إلهة العدالة. الجميع سيعرف ذلك. أنت من يحسم التعادل.",
+    falafel:"🧆 أنت بائع الفلافل. الجميع سيعرف ذلك. كل جولة تطعم لاعبا فلافل.",
+    mayor:"🎩 أنت العمدة. صوتك يُحسب مرتين ولا أحد يعرف ذلك.",
+    detective:"🔎 أنت المحقق. مرة واحدة في اللعبة يمكنك كشف دور لاعب.",
+  };
+  return (ar?arT:en)[p.sp]||"";
+}
+function oddCardFace(p, ar){
+  const w=oddWord(p); let h;
+  if(w){
+    const label = p.role==="uc" && S.odd.modes.informed ? (ar?"أنت المتخفي. كلمتك":"You're the Undercover. Your word") : (ar?"كلمتك":"Your word");
+    h=`<span class="hint">${label}</span><span class="word">${esc(ar?w.ar:w.en)}</span>`;
+  } else h=`<span class="word">${ar?"مستر وايت":"Mr White"}</span><span class="hint">${ar?"ليس لديك كلمة. استمع جيدا وحاول تخمين كلمتهم.":"You have no word. Listen, blend in, and guess theirs."}</span>`;
+  if(p.sp) h+=`<span class="secret">${oddSecret(p,ar)}</span>`;
+  return h;
+}
+function oddSheetExtra(p, ar){
+  if(p.sp!=="detective") return "";
+  if(G.phase==="deal") return `<div class="note">${ar?"🔎 يمكنك استعمال قدرتك عندما تبدأ اللعبة: اضغط «تحقق من بطاقتي» ثم اختر اسمك.":"🔎 Your power unlocks when the game starts: tap Check my card, choose your name, then use it."}</div>`;
+  if(!p.alive) return "";
+  if(ui.detResult!=null){ const t=G.players[ui.detResult];
+    return `<div class="panel" style="align-items:center"><div class="bigav">${avatar(t.name)}<b>${esc(t.name)}</b></div>${tagRole(t.role)}<p>${ar?"احفظ هذا السر.":"Keep it to yourself."}</p></div>`; }
+  if(p.detUsed) return `<p class="small">${ar?"لقد استعملت قدرتك.":"You already used your power."}</p>`;
+  if(ui.detPick) return `<p class="small">${ar?"اختر لاعبا:":"Choose a player:"}</p><div class="grid">${alive().filter(i=>G.players[i]!==p).map(i=>pcard(i,{act:"detect"})).join("")}</div>`;
+  return `<button class="btn" data-act="detPick">🔎 ${ar?"استعمل قدرة المحقق (مرة واحدة)":"Use detective power (once)"}</button>`;
+}
+function oddStartRound(){
+  G.round++; G.falafel=null; G.res=null;
+  const a=alive();
+  const starters=a.filter(i=>G.players[i].role!=="mw");
+  const k=a.indexOf(rnd(starters.length?starters:a));
+  G.order=a.slice(k).concat(a.slice(0,k));
+  G.meme = S.odd.specials.meme ? rnd(a) : null;
+  G.parrot = null;
+  if(S.odd.specials.parrot && G.order.length>1){
+    const opts=G.order.slice(1).filter(i=>i!==G.meme);
+    G.parrot = rnd(opts.length?opts:G.order.slice(1));
+  }
+  G.phase = (G.vendor!=null && G.players[G.vendor].alive) ? "falafel" : "describe";
+  ui={}; render();
+}
+function oddStartVote(cands){
+  const voters=G.players.map((p,i)=>i).filter(i=>G.players[i].alive || G.players[i].sp==="ghost");
+  beginVote({cands:cands||alive(), voters, onDone:oddResolve, revote:!!cands, hint:"Vote out loud, then tap your choice and pass the phone."});
+}
+function oddCount(exclude){
+  const V=G.vote, c={}, notes=[]; V.cands.forEach(i=>{ if(i!==exclude) c[i]=0; });
+  const w = v => G.players[v].sp==="mayor"?2:1;
+  for(const [vs,t] of Object.entries(V.votes)){ const v=+vs;
+    if(t in c) c[t]+=w(v);
+    if(exclude!=null && t===exclude && (v in c)) c[v]+=w(v);   // boomerang
+  }
+  const f=G.falafel;
+  if(f && f.i in c){
+    if(f.kind==="good"){ c[f.i]=0; notes.push(`🧆 ${G.players[f.i].name} ate a good falafel. Votes against them don't count this round.`); }
+    else { c[f.i]++; notes.push(`🧆 ${G.players[f.i].name} ate a bad falafel. +1 vote against them.`); }
+  }
+  return {c, notes};
+}
+function oddResolve(){
+  const {c,notes}=oddCount(null), r=judge(c);
+  G.res={c,notes,...r};
+  if(r.kind==="out") oddBoomerang(r.i);
+  G.phase="tally"; ui={}; render(); SFX.drum(); buzz(40);
+}
+function oddBoomerang(i){
+  const p=G.players[i];
+  if(p.sp!=="boomerang" || p.bUsed) return false;
+  p.bUsed=true;
+  const {c,notes}=oddCount(i);
+  G.res={c, notes:[...notes, `🪃 ${p.name} is the Boomerang! The votes against them bounce back onto whoever cast them.`], ...judge(c), bounced:i};
+  setTimeout(SFX.boom,250);
+  return true;
+}
+function oddEliminate(i,cause,by){ G.queue.push({i,cause,by}); oddProcess(); }
+function oddProcess(){
+  while(G.queue.length){
+    const {i,cause,by}=G.queue.shift(), p=G.players[i];
+    if(!p.alive) continue;
+    p.alive=false; p.cause=cause; p.by=by;
+    if(p.sp==="duelist" && G.duelLoser==null) G.duelLoser=i;
+    if(["vote","judge","draw"].includes(cause) && G.firstVoteOut==null) G.firstVoteOut=i;
+    G.cur=i; G.phase="out"; ui={}; render();
+    SFX.out(); buzz([60,40,120]); if(cause==="love") setTimeout(SFX.heart,400);
+    return;
+  }
+  const w=oddCheckWin(); if(w) oddFinish(w); else oddStartRound();
+}
+function oddAfterOut(){
+  const p=G.players[G.cur];
+  if(p.role==="mw" && !p.guessed){ G.phase="mwguess"; ui={}; return render(); }
+  if(p.sp==="revenger" && !p.revenged && alive().length){ G.phase="revenge"; ui={}; return render(); }
+  if(p.sp==="lover" && !p.loveDone){ p.loveDone=true; if(G.players[p.partner].alive) G.queue.push({i:p.partner, cause:"love", by:G.cur}); }
+  oddProcess();
+}
+function oddFinish(winners){
+  G.winners=winners; G.phase="end";
+  const aw=G.players.map(()=>[]);
+  G.players.forEach((p,i)=>{ if(winners.includes(p.role)) aw[i].push([SCORE[p.role],"Win"]); });
+  if(G.duelLoser!=null){ const l=G.duelLoser; aw[l].push([-2,"Lost duel"]); aw[G.players[l].partner].push([2,"Won duel"]); }
+  if(G.firstVoteOut!=null && G.players[G.firstVoteOut].sp==="joyfool") aw[G.firstVoteOut].push([4,"Joy Fool"]);
+  award("odd", aw); ui={}; render(); SFX.win(); buzz([80,60,80,60,200]); confetti();
+}
+const tagRole = r => `<span class="tag ${r}">${ROLE_NAME[r]}</span>`;
+const spTag = p => { const s=SP[SP_OF[p.sp]||p.sp]; return s?`<span class="tag sp">${s.icon} ${s.name.replace(/^The /,"")}</span>`:""; };
+function oddCountTags(){
+  if(S.odd.modes.hidden) return `<div class="counts"><span class="tag sp">${alive().length} players left</span></div>`;
+  const c=oddCounts();
+  return `<div class="counts"><span class="tag civ">${c.civ} Civilian${c.civ===1?"":"s"}</span>${S.odd.uc?`<span class="tag uc">${c.uc} Undercover</span>`:""}${S.odd.mw?`<span class="tag mw">${c.mw} Mr White</span>`:""}</div>`;
+}
+function oddFalafelView(){
+  const v=G.players[G.vendor];
+  if(!ui.f) return `<h2>Falafel time 🧆</h2><div class="bigav">${avatar(v.name)}<b>${esc(v.name)}</b></div><p style="text-align:center">Everyone look away. Hand the phone to the Falafel Vendor.</p>
+    <button class="btn" data-act="fstep">I'm ${esc(v.name)}</button><button class="btn ghost" data-act="fskip">Skip this round</button>`;
+  return `<h2>Who gets a falafel?</h2><p>Only you see this. A good falafel protects them from this round's vote. A bad one adds a vote against them.</p>
+    <div class="grid">${alive().filter(i=>i!==G.vendor).map(i=>pcard(i,{act:"ftarget",sel:ui.ft===i})).join("")}</div>
+    ${ui.ft!=null?`<div class="btns"><button class="btn" data-act="fgive" data-arg="good">Good falafel (protect)</button><button class="btn red" data-act="fgive" data-arg="bad">Bad falafel (+1 vote)</button></div>`:""}`;
+}
+function oddBanners(){
+  const b=[];
+  if(G.goddess!=null) b.push(`<div class="banner"><span class="ic">⚖️</span><span><b>${esc(G.players[G.goddess].name)}</b> is the Goddess of Justice and breaks ties${G.players[G.goddess].alive?"":", even from beyond"}.</span></div>`);
+  if(G.falafel) b.push(`<div class="banner"><span class="ic">🧆</span><span>Someone got a falafel this round. Good or bad? You'll find out at the vote.</span></div>`);
+  if(G.meme!=null) b.push(`<div class="banner"><span class="ic">🤐</span><span><b>${esc(G.players[G.meme].name)}</b> is Mr Meme this round. Clue with gestures only, no talking.</span></div>`);
+  if(G.parrot!=null) b.push(`<div class="banner"><span class="ic">🦜</span><span><b>${esc(G.players[G.parrot].name)}</b> is the Parrot. Their clue must start with the same letter as the clue before it.</span></div>`);
+  if(G.players.some(p=>p.sp==="detective")) b.push(`<div class="banner"><span class="ic">🔎</span><span>There's a Detective. Detective: tap <b>Check my card</b>, pick your name, and use your one-time power.</span></div>`);
+  const ghosts=G.players.filter(p=>!p.alive && p.sp==="ghost");
+  if(ghosts.length) b.push(`<div class="banner"><span class="ic">👻</span><span><b>${ghosts.map(p=>esc(p.name)).join(", ")}</b> still haunts the table and votes.</span></div>`);
+  return b.join("");
+}
+function oddDescribeView(){
+  return `<h2>Describe your word</h2><p>In this order, everyone gives one clue. Don't say the word itself.</p>
+  ${oddCountTags()}${oddBanners()}
+  ${G.round===1&&G.skipped.length?`<div class="note">Skipped: ${G.skipped.map(esc).join("; ")}.</div>`:""}
+  <div class="panel"><ol class="order">${G.order.map(i=>`<li>${avatar(G.players[i].name)}${esc(G.players[i].name)}${i===G.meme?`<span class="tag sp">🤐 Gestures</span>`:i===G.parrot?`<span class="tag sp">🦜 Parrot</span>`:""}</li>`).join("")}</ol></div>
+  <button class="btn" data-act="oddVote">Everyone has spoken. Vote</button>
+  <button class="btn ghost" data-act="checkCard">Check my card</button>`;
+}
+function oddTallyView(){
+  const r=G.res, top=r.kind==="out"?[r.i]:r.kind==="tie"?r.tied:[];
+  let action;
+  if(r.kind==="out") action=`<button class="btn red" data-act="oddOut">Eliminate ${esc(G.players[r.i].name)}</button>`;
+  else if(r.kind==="none") action=`<div class="note">Nobody has a vote against them. No one leaves this round.</div><button class="btn" data-act="oddNext">Next round</button>`;
+  else if(G.goddess!=null) action=`<div class="note">Tie between ${r.tied.map(i=>esc(G.players[i].name)).join(" and ")}. The Goddess of Justice decides.</div><button class="btn" data-act="toGoddess">${esc(G.players[G.goddess].name)} decides</button>`;
+  else action=`<div class="note">Tie between ${r.tied.map(i=>esc(G.players[i].name)).join(" and ")}. They each give one more clue, then everyone re-votes between them.</div>
+    <button class="btn" data-act="oddRevote">Re-vote between them</button><button class="btn ghost" data-act="oddRandom">Random draw instead</button>`;
+  return `<h2>The votes are in</h2>${barsHTML(r.c, top)}${r.notes.map(n=>`<div class="note">${esc(n)}</div>`).join("")}<div class="btns">${action}</div>`;
+}
+function oddGoddessView(){
+  return `<h2>Goddess of Justice</h2><p><b>${esc(G.players[G.goddess].name)}</b>, choose who leaves the table.</p>
+  <div class="grid">${G.res.tied.map(i=>pcard(i,{act:"judgeOdd"})).join("")}</div>`;
+}
+function oddOutView(){
+  const p=G.players[G.cur], hidden=S.odd.modes.hidden;
+  const cause = p.cause==="love" ? `💔 Left with a broken heart. ${esc(G.players[p.by].name)} was their lover.`
+    : p.cause==="revenge" ? `🗡️ Taken down by ${esc(G.players[p.by].name)}, the Revenger.`
+    : p.cause==="draw" ? "Picked by random draw." : p.cause==="judge" ? "Sentenced by the Goddess of Justice." : "Voted out.";
+  const flavour = p.role==="civ" ? "An innocent Civilian." : p.role==="uc" ? "Caught an Undercover!" : "Mr White is out, but not done yet.";
+  const extra=[];
+  if(!hidden && p.sp) extra.push(spTag(p));
+  if(!hidden && p.sp==="joyfool" && G.firstVoteOut===G.cur) extra.push(`<span class="tag gold">+4 Joy Fool</span>`);
+  return `<div class="bigav">${avatar(p.name)}</div><h2 style="text-align:center">${esc(p.name)} is out</h2>
+  <div class="bigcard">${hidden?`<span class="word">Role hidden</span><span class="hint">It stays secret until the end.</span>`
+    :`<span class="word">${ROLE_NAME[p.role]}</span><span class="hint">${flavour}</span><div class="counts" style="justify-content:center">${tagRole(p.role)}${extra.join("")}</div>`}</div>
+  <p>${cause}</p>
+  ${p.sp==="ghost"?`<div class="note">👻 As the Ghost, ${esc(p.name)} keeps talking and voting.</div>`:""}
+  ${oddCountTags()}
+  <button class="btn" data-act="oddAfterOut">Continue</button>`;
+}
+function oddMwView(){
+  const p=G.players[G.cur];
+  return `<h2>${esc(p.name)} was Mr White</h2><p>Last chance: guess the Civilians' word, in English or Arabic. Get it right and Mr White wins alone.</p>
+  <div class="panel"><label class="small" for="guess" style="font-weight:800;color:var(--muted)">Your guess</label>
+  <input type="text" id="guess" autocomplete="off" autocapitalize="off" maxlength="40" dir="auto" data-autofocus>
+  <button class="btn" data-act="guess">Submit guess</button></div>`;
+}
+function oddRevengeView(){
+  return `<h2>${esc(G.players[G.cur].name)} takes revenge</h2><p>The Revenger picks one player to take down with them.</p>
+  <div class="grid">${alive().map(i=>pcard(i,{act:"avenge"})).join("")}</div>`;
+}
+function oddEndView(){
+  const w=G.winners;
+  const title = w.length===2?"Impostors win":w[0]==="civ"?"Civilians win":w[0]==="uc"?"Undercover wins":"Mr White wins";
+  const sub = w[0]==="mw"&&w.length===1&&G.players.some(p=>p.role==="mw"&&p.guessed&&!p.wrong) ? "Guessed the word right." : "";
+  return `<h2 class="win-title">${title}</h2>${sub?`<p>${sub}</p>`:""}
+  <div class="words"><div><span class="tag civ">Civilians</span><strong>${esc(G.civ.en)}</strong><span class="ar" lang="ar">${esc(G.civ.ar)}</span></div>
+    <div><span class="tag uc">Undercover</span><strong>${esc(G.uc.en)}</strong><span class="ar" lang="ar">${esc(G.uc.ar)}</span></div></div>
+  <div class="panel"><h3>This game</h3><div class="score">${G.players.map((p,i)=>`<div class="s ${p.alive?"":"dead"}"><span>${esc(p.name)}</span><span class="r">${tagRole(p.role)}${p.sp?spTag(p):""}${G.awards[i].map(([v])=>ptsTag(v)).join("")}</span></div>`).join("")}</div></div>
+  ${boardHTML(S.scores.odd)}
+  <button class="btn" data-act="again">Play again</button><button class="btn ghost" data-act="menu">Change rules</button>`;
+}
+
+/* ============================================================
+   GAME 2 — MAFIA
+   ============================================================ */
+const MR = {
+  mafia:    {name:"Mafia",     ar:"مافيا",   team:"mafia",  desc:"Each night, choose someone to eliminate with your team. By day, act innocent.", descAr:"كل ليلة تختار مع فريقك لاعبا لإقصائه. في النهار تظاهر بالبراءة."},
+  godfather:{name:"Godfather", ar:"العرّاب", team:"mafia",  desc:"Boss of the Mafia. The Detective sees you as innocent.", descAr:"زعيم المافيا. المحقق يراك بريئا."},
+  doctor:   {name:"Doctor",    ar:"الطبيب",  team:"town",   desc:"Each night, save one player from the Mafia. Never the same player two nights in a row.", descAr:"كل ليلة تنقذ لاعبا من المافيا، لكن ليس نفس اللاعب ليلتين متتاليتين."},
+  detective:{name:"Detective", ar:"المحقق",  team:"town",   desc:"Each night, find out if one player is Mafia.", descAr:"كل ليلة تكتشف إن كان لاعب ما من المافيا."},
+  hunter:   {name:"Hunter",    ar:"الصياد",  team:"town",   desc:"You have one bullet. Use it any night to shoot someone, or keep it. If you're eliminated with it unused, you can still fire it.", descAr:"لديك رصاصة واحدة. استعملها في أي ليلة لإطلاق النار على لاعب أو احتفظ بها. إذا أُقصيت ورصاصتك معك يمكنك إطلاقها."},
+  jester:   {name:"Jester",    ar:"المهرج",  team:"jester", desc:"You win alone if the town votes you out. Act suspicious.", descAr:"تربح وحدك إذا صوّت الجميع لإخراجك. تصرّف بشكل مريب."},
+  villager: {name:"Villager",  ar:"قروي",    team:"town",   desc:"Find the Mafia and vote them out by day.", descAr:"اكتشف المافيا وصوّت لإخراجهم في النهار."},
+};
+const MAFIA_OPTS = [
+  {id:"doctor",    icon:"🩺", desc:"Saves one player each night."},
+  {id:"detective", icon:"🔎", desc:"Checks one player each night."},
+  {id:"godfather", icon:"🎩", desc:"One Mafia member looks innocent to the Detective."},
+  {id:"hunter",    icon:"🏹", desc:"One bullet for the whole game. Fire it at night or when eliminated."},
+  {id:"jester",    icon:"🃏", desc:"Wins alone by getting voted out."},
+];
+const mafiaMax = n => Math.max(1, Math.floor((n-1)/2));
+function mafiaRecommended(n){ return n<=6?1 : n<=9?2 : n<=12?3 : Math.floor(n/4); }
+function mafiaClamp(){ const m=S.mafia, n=S.players.length; if(!m.manual) m.mafia=mafiaRecommended(n); m.mafia=Math.min(Math.max(1,m.mafia), mafiaMax(n)); }
+function mafiaSetupView(){
+  mafiaClamp();
+  const m=S.mafia, n=S.players.length, mx=mafiaMax(n), err=playersError(5);
+  return `<h2>Mafia</h2>
+  ${playersPanel(5)}
+  <div class="panel"><h3>Roles</h3>
+    ${stepRow("Mafia","--uc",m.mafia,"mafia.mafia",m.mafia<=1,m.mafia>=mx)}
+    ${stepRow("Town","--civ",Math.max(0,n-m.mafia),"")}
+    <p class="small">The Mafia must start outnumbered. Everyone who isn't Mafia or a special role is a Villager.</p>
+    ${m.manual?`<button class="btn ghost" data-act="mafiaAuto">Back to recommended count</button>`:""}
+  </div>
+  <div class="panel"><h3>Special roles</h3>${MAFIA_OPTS.map(o=>swRow(o.icon,MR[o.id].name,o.desc,"mafia.roles."+o.id,m.roles[o.id])).join("")}</div>
+  <div class="panel"><h3>Options</h3>${swRow("👁️","Reveal roles on elimination","Show each eliminated player's role to the table.","mafia.reveal",m.reveal)}</div>
+  <details><summary>How to play</summary><ul>
+    <li>At night everyone closes their eyes and the phone goes round. Each player taps their name and does their night action. Villagers have nothing to do: they hold the phone for a few seconds and pass it, so nobody can tell roles apart by timing.</li>
+    <li>In the morning the app announces who the Mafia eliminated, unless the Doctor saved them.</li>
+    <li>By day, discuss and vote someone out.</li>
+    <li>The town wins when all Mafia are gone. The Mafia wins when they equal or outnumber everyone else.</li>
+    <li>Points: Town 2, Mafia 3, Jester 5.</li></ul></details>
+  ${err?`<div class="err">${err}</div>`:""}
+  <button class="btn" data-act="startGame" ${err?"disabled":""}>Deal the cards</button>`;
+}
+function mafiaNewGame(){
+  const n=S.players.length, m=S.mafia, cards=[];
+  for(let i=0;i<m.mafia;i++) cards.push(i===0&&m.roles.godfather?"godfather":"mafia");
+  G={game:"mafia", players:S.players.map(name=>({name, role:null, alive:true})), night:0, day:0, lastSave:null, skipped:[], log:[]};
+  for(const id of ["doctor","detective","hunter","jester"]) if(m.roles[id]){
+    if(cards.length < n-1) cards.push(id); else G.skipped.push(MR[id].name);
+  }
+  while(cards.length<n) cards.push("villager");
+  startDeal(cards);
+}
+const team = p => MR[p.role].team;
+function mafiaCardFace(p, ar){
+  const r=MR[p.role];
+  return `<span class="hint">${ar?"دورك":"Your role"}</span><span class="word">${ar?r.ar:r.name}</span><span class="secret">${ar?r.descAr:r.desc}</span>`;
+}
+function mafiaStartNight(){
+  G.night++; G.mPicks={}; G.dSave=null; G.hShot=null; G.nq=alive(); G.ni=0; G.step="pass"; G.phase="night"; ui={}; render(); SFX.night();
+}
+function mafiaNightView(){
+  const i=G.nq[G.ni], p=G.players[i], r=MR[p.role];
+  const dots=`<div class="progress"><i style="width:${G.ni/G.nq.length*100}%"></i></div>`;
+  if(G.step==="pass") return `<h2>Night ${G.night}</h2><p>Everyone close your eyes. Pass the phone to:</p>
+    <div class="bigav">${avatar(p.name)}<b>${esc(p.name)}</b></div>${dots}
+    ${G.night===1&&G.ni===0&&G.skipped.length?`<div class="note">Not enough players for: ${G.skipped.map(esc).join(", ")}.</div>`:""}
+    <button class="btn" data-act="nightOpen">I'm ${esc(p.name)}</button>`;
+  if(G.step==="done") return `<h2>Done</h2><p>Hide the screen and pass the phone on. Keep your eyes closed when you get back to your seat.</p>${dots}
+    <button class="btn" data-act="nightNext">Hide and pass</button>`;
+  // action
+  let head, cands, btn, extra="";
+  if(r.team==="mafia"){
+    const mates=alive().filter(k=>k!==i && team(G.players[k])==="mafia");
+    const picks=Object.entries(G.mPicks).map(([m,t])=>`${esc(G.players[m].name)} chose ${esc(G.players[t].name)}`);
+    head=`<h2>${r.name}: choose a target</h2><p>${mates.length?`Your team: <b>${mates.map(k=>esc(G.players[k].name)).join(", ")}</b>.`:"You're working alone tonight."} The player with the most Mafia votes is attacked.</p>`;
+    if(picks.length) extra=`<div class="note">${picks.join(". ")}.</div>`;
+    cands=alive().filter(k=>team(G.players[k])!=="mafia");
+    btn=ui.sel!=null?`Attack ${esc(G.players[ui.sel].name)}`:"";
+  } else if(p.role==="doctor"){
+    head=`<h2>Doctor: who do you save?</h2><p>If the Mafia attacks this player tonight, they survive.</p>`;
+    cands=alive().filter(k=>k!==G.lastSave);
+    if(G.lastSave!=null && G.players[G.lastSave].alive) extra=`<div class="note">You saved ${esc(G.players[G.lastSave].name)} last night, so not them again.</div>`;
+    btn=ui.sel!=null?`Save ${esc(G.players[ui.sel].name)}`:"";
+  } else if(p.role==="detective"){
+    if(ui.det!=null){ const t=G.players[ui.det], bad=t.role==="mafia";
+      return `<h2>Detective</h2><div class="bigav">${avatar(t.name)}<b>${esc(t.name)}</b></div>
+        <div class="note ${bad?"bad":"good"}" style="text-align:center;font-size:20px">${bad?"Is Mafia":"Is not Mafia"}</div>
+        <button class="btn" data-act="nightDone">Done</button>`; }
+    head=`<h2>Detective: who do you check?</h2><p>You'll see if they're Mafia.</p>`;
+    cands=alive().filter(k=>k!==i);
+    btn=ui.sel!=null?`Check ${esc(G.players[ui.sel].name)}`:"";
+  } else if(p.role==="hunter" && !p.shot){
+    head=`<h2>Hunter: use your bullet?</h2><p>You have one bullet for the whole game. Shoot someone tonight, or keep it for later.</p>`;
+    cands=alive().filter(k=>k!==i);
+    btn=ui.sel!=null?`Shoot ${esc(G.players[ui.sel].name)}`:"";
+    return `${head}<div class="grid">${cands.map(k=>pcard(k,{act:"nsel",sel:ui.sel===k})).join("")}</div>
+      ${btn?`<button class="btn red" data-act="nightConfirm">${btn}</button>`:""}<button class="btn ghost" data-act="nightDone">Keep my bullet</button>`;
+  } else {
+    const ready=Date.now()>=G.waitUntil, ms=Math.max(0,G.waitUntil-Date.now());
+    return `<h2>${r.name}</h2><p>${p.role==="hunter"?"Your bullet is used. ":""}Nothing to do tonight. Hold the phone for a moment so nobody can guess your role, then pass it.</p>
+      <div class="progress"><i style="width:${ready?100:0}%;${ready?"":`animation:fillbar ${ms}ms linear forwards`}"></i></div>
+      <button class="btn" data-act="nightDone" ${ready?"":"disabled"}>${ready?"Done":"Wait…"}</button>`;
+  }
+  return `${head}${extra}<div class="grid">${cands.map(k=>pcard(k,{act:"nsel",sel:ui.sel===k})).join("")}</div>
+    ${btn?`<button class="btn" data-act="nightConfirm">${btn}</button>`:""}`;
+}
+function mafiaNightConfirm(){
+  const i=G.nq[G.ni], p=G.players[i], t=ui.sel;
+  if(t==null) return;
+  if(team(p)==="mafia") G.mPicks[i]=t;
+  else if(p.role==="doctor") G.dSave=t;
+  else if(p.role==="detective"){ ui={det:t}; return render(); }
+  else if(p.role==="hunter"){ G.hShot=t; p.shot=true; }
+  G.step="done"; ui={}; render();
+}
+function mafiaDawn(){
+  const tally={}; Object.values(G.mPicks).forEach(t=>tally[t]=(tally[t]||0)+1);
+  const mx=Math.max(0,...Object.values(tally));
+  const victim = mx>0 ? +rnd(Object.keys(tally).filter(k=>tally[k]===mx)) : null;
+  G.lastSave=G.dSave;
+  const attacks=[]; if(victim!=null) attacks.push({i:victim, by:"mafia"}); if(G.hShot!=null) attacks.push({i:G.hShot, by:"hunter"});
+  const deaths=[]; let saved=false;
+  for(const a of attacks){
+    if(a.i===G.dSave){ saved=true; continue; }
+    if(deaths.some(d=>d.i===a.i)) continue;
+    deaths.push(a); G.players[a.i].alive=false; G.players[a.i].cause=a.by==="mafia"?"night":"nightshot";
+  }
+  G.dawn={deaths, saved};
+  G.phase="dawn"; ui={}; render(); SFX.dawn();
+  if(deaths.length) setTimeout(SFX.out,500);
+}
+function mafiaRoleLine(p){ return S.mafia.reveal ? `<span class="tag ${team(p)}">${MR[p.role].name}</span>` : `<span class="tag sp">Role hidden</span>`; }
+function mafiaDawnView(){
+  const d=G.dawn;
+  const rows=d.deaths.map(x=>{ const v=G.players[x.i];
+    return `<div class="panel" style="align-items:center"><div class="bigav">${avatar(v.name)}<b>${esc(v.name)}</b></div>
+      <p style="text-align:center">${x.by==="mafia"?"was eliminated by the Mafia during the night.":"was shot by the Hunter during the night."}</p>
+      <div class="counts" style="justify-content:center">${mafiaRoleLine(v)}</div></div>`; }).join("");
+  const savedNote = d.saved ? `<div class="note good">Someone was attacked, but the Doctor saved them.</div>` : "";
+  const quiet = !d.deaths.length && !d.saved ? `<div class="note">A quiet night. Nobody died.</div>` : "";
+  return `<h2>Morning, day ${G.day+1}</h2><p>Everyone open your eyes.</p>${rows}${savedNote}${quiet}<button class="btn" data-act="dawnNext">Continue</button>`;
+}
+function mafiaWin(){
+  const a=alive(), m=a.filter(i=>team(G.players[i])==="mafia").length, o=a.length-m;
+  if(m===0) return "town"; if(m>=o) return "mafia"; return null;
+}
+function mafiaProceed(next){ const w=mafiaWin(); if(w) return mafiaFinish(w); if(next==="day"){ G.day++; G.phase="day"; ui={}; render(); } else mafiaStartNight(); }
+function mafiaAfterDeath(i, next){
+  const p=G.players[i];
+  if(p.role==="hunter" && !p.shot){ G.hunter=i; G.next=next; G.phase="hunt"; ui={}; return render(); }
+  mafiaProceed(next);
+}
+function mafiaDayView(){
+  const a=alive(), dead=G.players.map((p,i)=>i).filter(i=>!G.players[i].alive);
+  return `<h2>Day ${G.day}</h2><p>Discuss who might be Mafia. When you're ready, vote. A tie means nobody leaves unless you re-vote.</p>
+  <div class="panel"><h3>Still in · ${a.length}</h3><ul class="order plain">${a.map(i=>`<li>${avatar(G.players[i].name)}${esc(G.players[i].name)}</li>`).join("")}</ul></div>
+  ${dead.length?`<div class="panel"><h3>Out · ${dead.length}</h3><ul class="order plain">${dead.map(i=>`<li class="dead">${avatar(G.players[i].name)}${esc(G.players[i].name)}${mafiaRoleLine(G.players[i])}</li>`).join("")}</ul></div>`:""}
+  <button class="btn" data-act="mafiaVote">Start the vote</button>
+  <button class="btn ghost" data-act="checkCard">Check my card</button>`;
+}
+function mafiaTally(){
+  const c={}; G.vote.cands.forEach(i=>c[i]=0);
+  Object.values(G.vote.votes).forEach(t=>{ if(t in c) c[t]++; });
+  G.res={c, ...judge(c)}; G.phase="mtally"; ui={}; render(); SFX.drum(); buzz(40);
+}
+function mafiaTallyView(){
+  const r=G.res, top=r.kind==="out"?[r.i]:r.kind==="tie"?r.tied:[];
+  let a;
+  if(r.kind==="out") a=`<button class="btn red" data-act="mafiaOut">Eliminate ${esc(G.players[r.i].name)}</button>`;
+  else if(r.kind==="tie") a=`<div class="note">Tie between ${r.tied.map(i=>esc(G.players[i].name)).join(" and ")}.</div>
+     <button class="btn" data-act="mafiaRevote">Re-vote between them</button><button class="btn ghost" data-act="mafiaNoOne">Nobody leaves today</button>`;
+  else a=`<button class="btn" data-act="mafiaNoOne">Nobody leaves today</button>`;
+  return `<h2>The votes are in</h2>${barsHTML(r.c, top)}<div class="btns">${a}</div>`;
+}
+function mafiaOutView(){
+  const p=G.players[G.cur];
+  const cause = p.cause==="shot" ? `Shot by ${esc(G.players[G.hunter].name)}, the Hunter.` : "Voted out by the town.";
+  return `<div class="bigav">${avatar(p.name)}</div><h2 style="text-align:center">${esc(p.name)} is out</h2>
+  <div class="bigcard">${S.mafia.reveal?`<span class="word">${MR[p.role].name}</span><span class="hint">${team(p)==="mafia"?"Got one of the Mafia!":"Not Mafia."}</span>`:`<span class="word">Role hidden</span><span class="hint">Revealed at the end.</span>`}</div>
+  <p>${cause}</p><button class="btn" data-act="mafiaAfterOut">Continue</button>`;
+}
+function mafiaHuntView(){
+  return `<h2>${esc(G.players[G.hunter].name)} was the Hunter</h2><p>The bullet is still loaded. Shoot one player on the way out, or don't.</p>
+  <div class="grid">${alive().map(i=>pcard(i,{act:"shoot"})).join("")}</div>
+  <button class="btn ghost" data-act="holdFire">Don't shoot</button>`;
+}
+function mafiaFinish(w, jester){
+  G.winner=w; G.phase="end";
+  const aw=G.players.map((p,i)=>{
+    if(w==="jester") return i===jester?[[5,"Jester"]]:[];
+    return team(p)===w ? [[w==="mafia"?3:2,"Win"]] : [];
+  });
+  award("mafia", aw); ui={}; render(); SFX.win(); buzz([80,60,80,60,200]); confetti();
+}
+function mafiaEndView(){
+  const t = G.winner==="town"?"The town wins":G.winner==="mafia"?"The Mafia wins":"The Jester wins";
+  const sub = G.winner==="town"?"Every Mafia member is out.":G.winner==="mafia"?"The Mafia now outnumbers the town.":"They tricked the town into voting them out.";
+  return `<h2 class="win-title">${t}</h2><p>${sub}</p>
+  <div class="panel"><h3>Roles</h3><div class="score">${G.players.map((p,i)=>`<div class="s ${p.alive?"":"dead"}"><span>${esc(p.name)}</span><span class="r"><span class="tag ${team(p)}">${MR[p.role].name}</span>${G.awards[i].map(([v])=>ptsTag(v)).join("")}</span></div>`).join("")}</div></div>
+  ${boardHTML(S.scores.mafia)}
+  <button class="btn" data-act="again">Play again</button><button class="btn ghost" data-act="menu">Change rules</button>`;
+}
+
+/* ============================================================
+   GAME 3 — THE SPY
+   ============================================================ */
+const spyMax = n => Math.max(1, Math.floor(n/3));
+function spyClamp(){ const s=S.spy, n=S.players.length; if(!s.manual) s.spies = n>=8?2:1; s.spies=Math.min(Math.max(1,s.spies), spyMax(n)); }
+function spySetupView(){
+  spyClamp();
+  const s=S.spy, n=S.players.length, err=playersError(3);
+  return `<h2>The Spy</h2>
+  ${playersPanel(3)}
+  <div class="panel"><h3>Roles</h3>
+    ${stepRow("Spies","--uc",s.spies,"spy.spies",s.spies<=1,s.spies>=spyMax(n))}
+    ${stepRow("Agents","--civ",Math.max(0,n-s.spies),"")}
+    ${s.manual?`<button class="btn ghost" data-act="spyAuto">Back to recommended count</button>`:""}
+  </div>
+  <div class="panel"><h3>Round timer</h3><div class="chips">${[5,8,10,15].map(m=>`<button class="chip" aria-pressed="${s.minutes===m}" data-act="spyMin" data-arg="${m}">${m} min</button>`).join("")}</div></div>
+  <details><summary>How to play</summary><ul>
+    <li>Everyone gets the same secret location and a role there, except the spy, who gets nothing.</li>
+    <li>Take turns asking one player a question about the location. Whoever answers asks next.</li>
+    <li>Agents: prove you know the place without making it obvious. Spy: blend in and work out the location.</li>
+    <li>Vote out the player you think is the spy. Catch the spy and they get one last guess at the location.</li>
+    <li>At any time the spy can reveal themselves and guess. Right: spies win. Wrong: agents win.</li>
+    <li>Points: Spy win 4, Agent win 1.</li></ul>
+    <p class="small" style="margin-top:10px">${LOCS.length} locations.</p></details>
+  ${err?`<div class="err">${err}</div>`:""}
+  <button class="btn" data-act="startGame" ${err?"disabled":""}>Deal the cards</button>`;
+}
+function spyNewGame(){
+  const n=S.players.length, s=S.spy;
+  let fresh=LOCS.filter(l=>!s.used.includes(l.en)); if(!fresh.length){ s.used=[]; fresh=LOCS; }
+  const loc=rnd(fresh); s.used.push(loc.en); save();
+  const roles=shuffle(loc.roles), cards=[];
+  for(let i=0;i<s.spies;i++) cards.push("spy");
+  for(let k=0;cards.length<n;k++) cards.push(roles[k%roles.length]);
+  G={game:"spy", loc, players:S.players.map(name=>({name, spy:false, role:null, alive:true}))};
+  startDeal(cards);
+}
+function spyCardFace(p, ar){
+  if(p.spy) return `<span class="word">${ar?"أنت الجاسوس":"You're the Spy"}</span><span class="hint">${ar?"لا تعرف المكان. استمع للأسئلة واكتشفه دون أن تنكشف.":"You don't know the location. Listen to the questions and work it out without getting caught."}</span>`;
+  return `<span class="hint">${ar?"المكان":"Location"}</span><span class="word">${esc(ar?G.loc.ar:G.loc.en)}</span><span class="secret">${ar?"دورك":"Your role"}: <b>${esc(ar?p.role.ar:p.role.en)}</b></span>`;
+}
+let TIMER=null;
+const fmt = ms => { const s=Math.ceil(ms/1000); return `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`; };
+const spyLeft = () => G.paused!=null ? G.paused : Math.max(0, G.endsAt-Date.now());
+function stopTimer(){ clearInterval(TIMER); TIMER=null; }
+function spyTick(){
+  stopTimer();
+  const upd=()=>{
+    const el=$("#timer"); if(!el || !G || G.game!=="spy" || G.phase!=="play"){ stopTimer(); return; }
+    const r=spyLeft(); el.textContent=fmt(r); el.classList.toggle("low", r<60000);
+    if(r<=0 && G.paused==null){ stopTimer(); SFX.bad(); buzz(400); toast("Time's up. Vote now."); spyVote(); }
+  };
+  upd(); TIMER=setInterval(upd,500);
+}
+function spyStart(){ G.first=rnd(G.players.map((p,i)=>i)); G.endsAt=Date.now()+S.spy.minutes*60000; G.paused=null; G.phase="play"; ui={}; render(); }
+function spyPlayView(){
+  return `<div class="panel" style="align-items:center"><div class="timer" id="timer">${fmt(spyLeft())}</div>
+    <button class="chip" data-act="spyPause">${G.paused!=null?"Resume timer":"Pause timer"}</button></div>
+  <div class="banner">${avatar(G.players[G.first].name)}<span><b>${esc(G.players[G.first].name)}</b> asks the first question. Ask anyone about the location; whoever answers asks next.</span></div>
+  <button class="btn" data-act="spyVote">Call a vote</button>
+  <button class="btn red" data-act="spyReveal">I'm the spy: guess the location</button>
+  <button class="btn ghost" data-act="checkCard">Check my card</button>
+  <details><summary>All possible locations</summary><div class="loclist">${LOCS.map(l=>`<span>${esc(l.en)} <span class="ar">· ${esc(l.ar)}</span></span>`).join("")}</div></details>
+  ${ui.spyWho?`<div class="sheet"><div class="inner"><h2>Who's the spy?</h2><p>Tap your name.</p><div class="grid">${G.players.map((p,i)=>pcard(i,{act:"spyWho"})).join("")}</div><button class="btn ghost" data-act="spyWhoCancel">Cancel</button></div></div>`:""}`;
+}
+function spyVote(cands){
+  if(G.paused==null) G.paused=spyLeft();
+  const all=G.players.map((p,i)=>i);
+  beginVote({cands:cands||all, voters:all, onDone:spyTally, revote:!!cands, hint:"Who is the spy? Tap them, then pass the phone."});
+}
+function spyResume(){ G.endsAt=Date.now()+Math.max(G.paused||0,60000); G.paused=null; G.phase="play"; ui={}; render(); }
+function spyTally(){
+  const c={}; G.vote.cands.forEach(i=>c[i]=0); Object.values(G.vote.votes).forEach(t=>{ if(t in c) c[t]++; });
+  G.res={c,...judge(c)}; G.phase="stally"; ui={}; render(); SFX.drum(); buzz(40);
+}
+function spyTallyView(){
+  const r=G.res, top=r.kind==="out"?[r.i]:r.kind==="tie"?r.tied:[];
+  let a;
+  if(r.kind==="out") a=`<button class="btn red" data-act="spyAccuse">Accuse ${esc(G.players[r.i].name)}</button>`;
+  else if(r.kind==="tie") a=`<div class="note">Tie between ${r.tied.map(i=>esc(G.players[i].name)).join(" and ")}.</div><button class="btn" data-act="spyRevote">Re-vote between them</button><button class="btn ghost" data-act="spyResume">Back to questions</button>`;
+  else a=`<button class="btn" data-act="spyResume">Back to questions</button>`;
+  return `<h2>The votes are in</h2>${barsHTML(r.c, top)}<div class="btns">${a}</div>`;
+}
+function spyAccuse(i){
+  const p=G.players[i];
+  if(p.spy){ G.cur=i; G.self=false; G.phase="sguess"; ui={}; render(); SFX.good(); }
+  else spyFinish("spy",{why:`${p.name} was an agent. The spy got away.`});
+}
+function spyGuessView(){
+  const p=G.players[G.cur];
+  return `<div class="bigav">${avatar(p.name)}</div><h2 style="text-align:center">${esc(p.name)} ${G.self?"reveals: I'm the spy!":"is a spy!"}</h2>
+  <p style="text-align:center">${G.self?"Pick the location. Right: spies win. Wrong: agents win.":"Last chance: pick the location. Right and the spies still win."}</p>
+  <div class="locgrid">${LOCS.map((l,k)=>`<button class="loc" data-act="spyPick" data-arg="${k}">${esc(l.en)}<small>${esc(l.ar)}</small></button>`).join("")}</div>`;
+}
+function spyFinish(w, {why}){
+  G.winner=w; G.why=why; G.phase="end";
+  const aw=G.players.map(p=> (w==="spy")===p.spy ? [[w==="spy"?4:1,"Win"]] : []);
+  award("spy", aw); ui={}; render(); SFX.win(); buzz([80,60,80,60,200]); confetti();
+}
+function spyEndView(){
+  const n=G.players.filter(p=>p.spy).length;
+  return `<h2 class="win-title">${G.winner==="spy"?(n>1?"Spies win":"The spy wins"):"Agents win"}</h2><p>${esc(G.why)}</p>
+  <div class="words one"><div><span class="tag civ">Location</span><strong>${esc(G.loc.en)}</strong><span class="ar" lang="ar">${esc(G.loc.ar)}</span></div></div>
+  <div class="panel"><h3>This game</h3><div class="score">${G.players.map((p,i)=>`<div class="s"><span>${esc(p.name)}</span><span class="r">${p.spy?`<span class="tag uc">Spy</span>`:`<span class="tag civ">${esc(p.role.en)}</span>`}${G.awards[i].map(([v])=>ptsTag(v)).join("")}</span></div>`).join("")}</div></div>
+  ${boardHTML(S.scores.spy)}
+  <button class="btn" data-act="again">Play again</button><button class="btn ghost" data-act="menu">Change rules</button>`;
+}
+
+/* ============================================================
+   REGISTRY & HOME
+   ============================================================ */
+const GAMES = {
+  odd:{ title:"ODD WORD", name:"Odd Word", min:4, color:"--accent", glyph:"?", desc:"Everyone shares a word except the impostors. Give clues, find the odd one out.",
+    setup:oddSetupView, start:oddNewGame, applyCard:(i,r)=>{ G.players[i].role=r; }, afterDeal:oddStartRound,
+    cardFace:oddCardFace, sheetExtra:oddSheetExtra, voteBack:()=>{ G.phase="describe"; },
+    label:()=>G.phase==="end"?"Game over":G.phase==="deal"?"Deal":`Round ${G.round}`,
+    views:{deal:dealView, falafel:oddFalafelView, describe:oddDescribeView, vote:voteView, tally:oddTallyView, goddess:oddGoddessView,
+           out:oddOutView, mwguess:oddMwView, revenge:oddRevengeView, end:oddEndView}},
+  mafia:{ title:"MAFIA", name:"Mafia", min:5, color:"--uc", glyph:"M", desc:"The phone runs the night. Find the Mafia before they take over the town.",
+    setup:mafiaSetupView, start:mafiaNewGame, applyCard:(i,r)=>{ G.players[i].role=r; }, afterDeal:mafiaStartNight,
+    cardFace:mafiaCardFace, voteBack:()=>{ G.phase="day"; },
+    label:()=>G.phase==="end"?"Game over":G.phase==="deal"?"Deal":G.phase==="night"?`Night ${G.night}`:`Day ${Math.max(1,G.day)}`,
+    views:{deal:dealView, night:mafiaNightView, dawn:mafiaDawnView, day:mafiaDayView, vote:voteView, mtally:mafiaTallyView,
+           mout:mafiaOutView, hunt:mafiaHuntView, end:mafiaEndView}},
+  spy:{ title:"THE SPY", name:"The Spy", min:3, color:"--sp", glyph:"S", desc:"Everyone knows the location except the spy. Ask questions, catch the bluffer.",
+    setup:spySetupView, start:spyNewGame, applyCard:(i,c)=>{ if(c==="spy") G.players[i].spy=true; else G.players[i].role=c; }, afterDeal:spyStart,
+    cardFace:spyCardFace, voteBack:()=>{ spyResume(); },
+    label:()=>G.phase==="end"?"Game over":G.phase==="deal"?"Deal":"Play",
+    views:{deal:dealView, play:spyPlayView, vote:voteView, stally:spyTallyView, sguess:spyGuessView, end:spyEndView}},
+};
+function homeView(){
+  const n=S.players.length;
+  return `<h2>Pick a game</h2>
+  <div class="tiles">${Object.entries(GAMES).map(([k,g])=>`<button class="tile" data-act="goto" data-arg="${k}">
+    <span class="glyph" style="background:var(${g.color})">${g.glyph}</span>
+    <span class="tx"><span class="tn">${g.name}</span><span class="td">${g.desc}</span><span class="tm">${g.min}+ players${n&&n<g.min?` · add ${g.min-n} more`:""}</span></span></button>`).join("")}</div>
+  <p class="small">Add players here or inside any game. The list is shared by all three.</p>
+  ${playersPanel(0)}
+  <div class="panel">${swRow("🔊","Sound and vibration","","sound",S.sound)}</div>
+  ${Object.values(S.scores).some(s=>Object.keys(s).length)?`<button class="btn ghost" data-act="resetScores">Reset all leaderboards</button>`:""}`;
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function render(){
+  let right="", body;
+  if(G){ const g=GAMES[G.game]; right=g.label(); body=g.views[G.phase](); }
+  else if(APP.screen==="home") body=homeView();
+  else { right="Setup"; body=GAMES[APP.screen].setup(); }
+  const left = (!G && APP.screen==="home") ? `<div class="logo">${APP_NAME[0]}<span>${APP_NAME[1]}</span></div>`
+    : `<button class="back" data-act="${G?"quit":"home"}" aria-label="${G?"Quit game":"Back to games"}">‹</button><div class="logo sm">${GAMES[G?G.game:APP.screen].title}</div>`;
+  let html = `<header class="top"><div class="hl">${left}</div><div class="phase">${right}</div></header>${body}`;
+  if(G){ if(ui.pickCard) html+=pickCardOverlay(); if(ui.open!=null) html+=sheetView(); }
+  $("#app").innerHTML = html;
+  document.body.classList.toggle("night", !!G && G.game==="mafia" && G.phase==="night");
+  const f=document.querySelector("[data-autofocus]"); if(f) f.focus();
+  if(G && G.game==="spy" && G.phase==="play") spyTick(); else stopTimer();
+}
+
+/* ============================================================
+   ACTIONS
+   ============================================================ */
+let quitArmed=false, resetArmed=false;
+const ACT = {
+  // navigation
+  home(){ APP.screen="home"; render(); scrollTo(0,0); },
+  goto(k){ APP.screen=k; render(); scrollTo(0,0); },
+  quit(){ if(quitArmed){ quitArmed=false; APP.screen=G.game; G=null; ui={}; render(); return; }
+    quitArmed=true; toast("Tap ‹ again to quit this game."); setTimeout(()=>quitArmed=false,3000); },
+  startGame(){ GAMES[APP.screen].start(); scrollTo(0,0); },
+  again(){ GAMES[G.game].start(); scrollTo(0,0); },
+  menu(){ APP.screen=G.game; G=null; ui={}; render(); scrollTo(0,0); },
+  // players
+  add(){ const el=$("#newname"), v=el.value.trim(); if(!v) return;
+    if(S.players.some(p=>p.toLowerCase()===v.toLowerCase())) return toast("That name is taken.");
+    if(S.players.length>=20) return;
+    S.players.push(v); save(); ui.focusAdd=true; render(); ui.focusAdd=false; },
+  rm(i){ S.players.splice(+i,1); save(); render(); },
+  resetScores(){ if(resetArmed){ S.scores={odd:{},mafia:{},spy:{}}; save(); resetArmed=false; render(); toast("Leaderboards cleared."); }
+    else { resetArmed=true; toast("Tap again to clear every leaderboard."); setTimeout(()=>resetArmed=false,3000); } },
+  // settings
+  toggle(path){ const ks=path.split("."); let o=S; ks.slice(0,-1).forEach(k=>o=o[k]); const k=ks.at(-1); o[k]=!o[k]; save(); render(); if(path==="sound"&&S.sound) SFX.good(); },
+  step(arg){ const [path,d]=arg.split(":"), [g,k]=path.split("."); S[g].manual=true; S[g][k]=Math.max(0,S[g][k]+(+d));
+    if(g==="odd") oddClamp(); if(g==="mafia") mafiaClamp(); if(g==="spy") spyClamp(); save(); render(); },
+  oddAuto(){ S.odd.manual=false; save(); render(); },
+  mafiaAuto(){ S.mafia.manual=false; save(); render(); },
+  spyAuto(){ S.spy.manual=false; save(); render(); },
+  spyMin(m){ S.spy.minutes=+m; save(); render(); },
+  cat(k){ const on=Object.values(S.odd.cats).filter(Boolean).length; if(S.odd.cats[k]&&on===1) return toast("Keep at least one category."); S.odd.cats[k]=!S.odd.cats[k]; save(); render(); },
+  // deal & cards
+  pick(c){ c=+c; if(G.taken[c]!=null || G.turn>=G.players.length) return;
+    G.taken[c]=G.turn; GAMES[G.game].applyCard(G.turn, G.cards[c]); ui={open:G.turn, ar:ui.ar}; SFX.flip(); render(); },
+  afterDeal(){ GAMES[G.game].afterDeal(); scrollTo(0,0); },
+  peek(){ ui.peek=!ui.peek; if(ui.peek){ ui.peeked=true; SFX.flip(); buzz(20); } else { ui.detPick=false; } render(); },
+  lang(){ ui.ar=!ui.ar; render(); },
+  gotit(){ if(G.phase==="deal" && ui.open===G.turn) G.turn++; ui={ar:ui.ar}; render(); },
+  checkCard(){ ui={pickCard:true, ar:ui.ar}; render(); },
+  closePick(){ ui={ar:ui.ar}; render(); },
+  open(i){ ui={open:+i, ar:ui.ar}; render(); },
+  detPick(){ ui.detPick=true; render(); },
+  detect(i){ G.players[ui.open].detUsed=true; ui.detResult=+i; ui.detPick=false; ui.peeked=true; SFX.good(); render(); },
+  // voting
+  cast(i){ const V=G.vote; V.votes[V.voters[V.vi]]=+i; V.vi++; SFX.vote(); buzz(15); skipEmptyVoters();
+    if(V.vi>=V.voters.length) V.onDone(V.votes); else render(); },
+  undo(){ const V=G.vote; V.vi--; while(V.vi>0 && !voteOptions(V.voters[V.vi]).length) V.vi--; delete V.votes[V.voters[V.vi]]; render(); },
+  voteBack(){ GAMES[G.game].voteBack(); ui={}; render(); },
+  // odd word
+  fstep(){ ui.f=1; render(); },
+  fskip(){ G.phase="describe"; ui={}; render(); },
+  ftarget(i){ ui.ft=+i; render(); },
+  fgive(kind){ G.falafel={i:ui.ft, kind}; G.phase="describe"; ui={}; render(); toast("Falafel delivered. Pass the phone back."); },
+  oddVote(){ oddStartVote(); },
+  oddOut(){ oddEliminate(G.res.i,"vote"); },
+  oddNext(){ const w=oddCheckWin(); if(w) oddFinish(w); else oddStartRound(); },
+  toGoddess(){ G.phase="goddess"; render(); },
+  judgeOdd(i){ i=+i; if(oddBoomerang(i)){ G.phase="tally"; return render(); } oddEliminate(i,"judge"); },
+  oddRevote(){ oddStartVote(G.res.tied); },
+  oddRandom(){ const i=rnd(G.res.tied); if(oddBoomerang(i)) return render(); oddEliminate(i,"draw"); },
+  oddAfterOut(){ oddAfterOut(); },
+  guess(){ const p=G.players[G.cur], g=$("#guess").value; if(!g.trim()) return;
+    p.guessed=true;
+    if([G.civ.en,G.civ.ar].some(w=>norm(w)===norm(g))){ G.queue=[]; toast(`“${g}” is right!`); return oddFinish(["mw"]); }
+    p.wrong=true; SFX.bad(); toast(`“${g}” is wrong.`); oddAfterOut(); },
+  avenge(i){ const p=G.players[G.cur]; p.revenged=true; G.queue.unshift({i:+i, cause:"revenge", by:G.cur}); SFX.boom(); oddAfterOut(); },
+  // mafia
+  nightOpen(){ G.step="act"; ui={};
+    const p=G.players[G.nq[G.ni]], passive=["villager","jester"].includes(p.role) || (p.role==="hunter" && p.shot);
+    if(passive){ const ms=4000+Math.random()*3000; G.waitUntil=Date.now()+ms;
+      setTimeout(()=>{ if(G && G.phase==="night" && G.step==="act") render(); }, ms+60); }
+    render(); },
+  nsel(i){ ui.sel=+i; render(); },
+  nightConfirm(){ mafiaNightConfirm(); },
+  nightDone(){ G.step="done"; ui={}; render(); },
+  nightNext(){ G.ni++; if(G.ni>=G.nq.length) mafiaDawn(); else { G.step="pass"; ui={}; render(); } },
+  dawnNext(){ const h=G.dawn.deaths.map(x=>x.i).find(i=>G.players[i].role==="hunter" && !G.players[i].shot);
+    if(h!=null){ G.hunter=h; G.next="day"; G.phase="hunt"; ui={}; render(); } else mafiaProceed("day"); },
+  holdFire(){ G.players[G.hunter].shot=true; toast("The Hunter kept the bullet."); mafiaProceed(G.next); },
+  mafiaVote(){ const a=alive(); beginVote({cands:a, voters:a, onDone:mafiaTally, hint:"Tap who you think is Mafia, then pass the phone."}); },
+  mafiaRevote(){ beginVote({cands:G.res.tied, voters:alive(), onDone:mafiaTally, revote:true}); },
+  mafiaNoOne(){ toast("Nobody leaves today."); mafiaProceed("night"); },
+  mafiaOut(){ const i=G.res.i, p=G.players[i]; p.alive=false; p.cause="vote"; SFX.out(); buzz([60,40,120]);
+    if(p.role==="jester") return mafiaFinish("jester", i);
+    G.cur=i; G.next="night"; G.phase="mout"; ui={}; render(); },
+  mafiaAfterOut(){ mafiaAfterDeath(G.cur, G.next); },
+  shoot(i){ i=+i; G.players[G.hunter].shot=true; const p=G.players[i]; p.alive=false; p.cause="shot"; SFX.boom(); buzz([60,40,120]);
+    G.cur=i; G.phase="mout"; ui={}; render(); },
+  // spy
+  spyPause(){ if(G.paused!=null){ G.endsAt=Date.now()+G.paused; G.paused=null; } else G.paused=spyLeft(); render(); },
+  spyVote(){ spyVote(); },
+  spyRevote(){ spyVote(G.res.tied); },
+  spyResume(){ spyResume(); },
+  spyAccuse(){ spyAccuse(G.res.i); },
+  spyReveal(){ ui.spyWho=true; render(); },
+  spyWhoCancel(){ ui={}; render(); },
+  spyWho(i){ i=+i; const p=G.players[i];
+    if(!p.spy){ ui={}; render(); return toast(`${p.name} isn't a spy.`); }
+    G.paused=spyLeft(); G.cur=i; G.self=true; G.phase="sguess"; ui={}; render(); },
+  spyPick(k){ const l=LOCS[+k], ok=l.en===G.loc.en, p=G.players[G.cur];
+    if(ok) spyFinish("spy",{why:`${p.name} guessed the location: ${l.en}.`});
+    else spyFinish("agents",{why:`${p.name} guessed ${l.en}. Wrong location.`}); },
+};
+
+document.addEventListener("click", e=>{
+  const b=e.target.closest("[data-act]"); if(!b || b.disabled) return;
+  if(!["cast","pick","peek"].includes(b.dataset.act)) SFX.tap();
+  ACT[b.dataset.act](b.dataset.arg, b);
+});
+document.addEventListener("change", e=>{
+  const el=e.target.closest("[data-name]"); if(!el) return;
+  const v=el.value.trim(), i=+el.dataset.name;
+  if(v && !S.players.some((p,k)=>k!==i && p.toLowerCase()===v.toLowerCase())) S.players[i]=v; else toast(v?"That name is taken.":"Name can't be empty.");
+  save(); render();
+});
+document.addEventListener("keydown", e=>{
+  if(e.key==="Enter" && e.target.id==="newname") ACT.add();
+  if(e.key==="Enter" && e.target.id==="guess") ACT.guess();
+});
+
+function toast(m){
+  let t=document.querySelector(".toast");
+  if(!t){ t=document.createElement("div"); t.className="toast"; t.setAttribute("role","status"); document.body.appendChild(t); }
+  t.textContent=m; t.classList.add("on"); clearTimeout(toast.h); toast.h=setTimeout(()=>t.classList.remove("on"),2600);
+}
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv=document.createElement("canvas"); cv.className="confetti"; document.body.appendChild(cv);
+  const d=devicePixelRatio||1, x=cv.getContext("2d"), W=cv.width=innerWidth*d, H=cv.height=innerHeight*d;
+  const cols=["#f2b33d","#3cc4a8","#e2558f","#cfd6ea","#8fa8ff"];
+  const ps=Array.from({length:150},()=>({x:Math.random()*W, y:-Math.random()*H*.6, vx:(Math.random()-.5)*4*d, vy:(2+Math.random()*4)*d,
+    s:(5+Math.random()*7)*d, r:Math.random()*6, vr:(Math.random()-.5)*.3, c:rnd(cols)}));
+  let t=0;(function f(){ x.clearRect(0,0,W,H);
+    for(const p of ps){ p.x+=p.vx; p.y+=p.vy; p.vy+=.05*d; p.r+=p.vr; x.save(); x.translate(p.x,p.y); x.rotate(p.r); x.fillStyle=p.c; x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); x.restore(); }
+    if(++t<240) requestAnimationFrame(f); else cv.remove(); })();
+}
+
+render();
+</script>
+<script>if("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(()=>{});</script>
+</html>
